@@ -10,6 +10,7 @@ const firebaseConfig = {
   apiKey: 'AIzaSyDHKOdFuk4Ak4DqkwnXtB_dnlA_ZlwTWno',
   authDomain: 'hobo-livings.firebaseapp.com',
   messagingSenderId: '427798360692',
+  measurementId: '',
 };
 
 // Initialize Firebase
