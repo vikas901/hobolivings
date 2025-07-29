@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Home, Rocket, ShieldCheck } from 'lucide-react';
+import { Home, Rocket } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -61,11 +61,19 @@ export default function SignupPage() {
       toast({ title: 'Welcome to Hobo Livings!', description: 'Your account has been created successfully.' });
       router.push('/');
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Google Sign-In Failed',
-        description: error.message,
-      });
+      if (error.code === 'auth/unauthorized-domain') {
+        toast({
+            variant: 'destructive',
+            title: 'Sign-in Failed',
+            description: 'This domain is not authorized for Google Sign-In. Please contact support.',
+        });
+      } else {
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description: error.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -95,6 +103,8 @@ export default function SignupPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
+      await sendEmailVerification(user);
+
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name,
@@ -103,9 +113,14 @@ export default function SignupPage() {
         profileType,
         preferredCity,
       });
+      
+      await auth.signOut();
 
-      toast({ title: 'Welcome to Hobo Livings!', description: 'Your account has been created successfully.' });
-      router.push('/');
+      toast({ 
+        title: '🎉 Congratulations!', 
+        description: 'Your account has been created. Please check your email to verify your account before logging in.' 
+      });
+      router.push('/login');
     } catch (error: any) {
       let errorMessage = error.message;
       if (error.code === 'auth/email-already-in-use') {
