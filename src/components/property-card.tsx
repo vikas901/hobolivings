@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 interface PropertyCardProps {
   property: Property;
@@ -18,6 +23,26 @@ const amenityIcons = {
 };
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleBookNow = () => {
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please login to book a property.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+    } else {
+      toast({
+        title: 'Coming Soon!',
+        description: 'Booking functionality is not yet implemented.',
+      });
+    }
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="p-0 relative">
@@ -56,7 +81,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <p className="text-xl font-bold text-primary">₹{property.price.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">/ month</p>
         </div>
-        <Button>
+        <Button onClick={handleBookNow}>
           Book Now <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
