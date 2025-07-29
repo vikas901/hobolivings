@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Home, Rocket, Upload } from 'lucide-react';
+import { Home, Rocket, Upload, ShieldCheck } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,43 +27,92 @@ export default function SignupPage() {
   const [preferredCity, setPreferredCity] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+
   const router = useRouter();
   const { toast } = useToast();
+  
+  // Effect to set up reCAPTCHA
+  useEffect(() => {
+    // This is to prevent initializing reCAPTCHA on server.
+    if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        }
+      });
+    }
+  }, []);
+
+
+  const handleSendOtp = async () => {
+    if (!mobile || mobile.length < 10) {
+        toast({ variant: 'destructive', title: 'Invalid Phone Number', description: 'Please enter a valid 10-digit phone number.' });
+        return;
+    }
+    setLoading(true);
+    try {
+        const phoneNumber = `+91${mobile}`;
+        const appVerifier = window.recaptchaVerifier;
+        const confirmation = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+        setConfirmationResult(confirmation);
+        setOtpSent(true);
+        toast({ title: 'OTP Sent!', description: 'Please check your phone for the OTP.' });
+    } catch (error: any) {
+        console.error("Error sending OTP:", error);
+        toast({ variant: 'destructive', title: 'Failed to send OTP', description: error.message });
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+        toast({ variant: 'destructive', title: 'Invalid OTP', description: 'Please enter the 6-digit OTP.' });
+        return;
+    }
+    setLoading(true);
+    try {
+        await confirmationResult?.confirm(otp);
+        setIsVerified(true);
+        setOtpSent(false); // Hide OTP field after verification
+        toast({ title: 'Phone Verified!', description: 'Your phone number has been successfully verified.' });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'OTP Verification Failed', description: 'The OTP you entered is incorrect. Please try again.' });
+    } finally {
+        setLoading(false);
+    }
+  };
+
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    if (!isVerified) {
+        toast({ variant: 'destructive', title: 'Phone number not verified', description: 'Please verify your phone number before creating an account.'});
+        return;
+    }
 
     if (password !== confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Signup Failed',
-        description: 'Passwords do not match.',
-      });
-      setLoading(false);
+      toast({ variant: 'destructive', title: 'Signup Failed', description: 'Passwords do not match.' });
       return;
     }
 
     if (password.length < 8 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
-      toast({
-        variant: 'destructive',
-        title: 'Signup Failed',
-        description: 'Password must be at least 8 characters long and contain both letters and numbers.',
-      });
-      setLoading(false);
+      toast({ variant: 'destructive', title: 'Signup Failed', description: 'Password must be at least 8 characters long and contain both letters and numbers.' });
       return;
     }
     
     if (!agreedToTerms) {
-        toast({
-            variant: 'destructive',
-            title: 'Signup Failed',
-            description: 'You must agree to the Terms & Conditions and Privacy Policy.',
-        });
-        setLoading(false);
+        toast({ variant: 'destructive', title: 'Signup Failed', description: 'You must agree to the Terms & Conditions and Privacy Policy.'});
         return;
     }
 
+    setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -78,17 +127,13 @@ export default function SignupPage() {
       });
 
       toast({ title: 'Welcome to Hobo Livings!', description: 'Your account has been created successfully.' });
-      router.push('/'); // Redirect to a welcome/dashboard page
+      router.push('/');
     } catch (error: any) {
       let errorMessage = error.message;
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email address is already in use. Please use a different email or log in.';
       }
-      toast({
-        variant: 'destructive',
-        title: 'Signup Failed',
-        description: errorMessage,
-      });
+      toast({ variant: 'destructive', title: 'Signup Failed', description: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -96,6 +141,7 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4 md:p-8">
+       <div id="recaptcha-container"></div>
       <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
           <Home className="h-6 w-6" />
@@ -115,15 +161,32 @@ export default function SignupPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
-                <Input id="name" placeholder="e.g., Rahul Sharma" required value={name} onChange={(e) => setName(e.target.value)} />
+                <Input id="name" placeholder="e.g., Rahul Sharma" required value={name} onChange={(e) => setName(e.target.value)} disabled={isVerified} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
-                <Input id="email" type="email" placeholder="e.g., rahul@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input id="email" type="email" placeholder="e.g., rahul@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isVerified} />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-2 md:col-span-2">
                 <Label htmlFor="mobile">Phone Number <span className="text-destructive">*</span></Label>
-                <Input id="mobile" type="tel" placeholder="OTP verification enabled" required value={mobile} onChange={(e) => setMobile(e.target.value)} />
+                <div className="flex gap-2">
+                  <Input id="mobile" type="tel" placeholder="Enter 10-digit mobile number" required value={mobile} onChange={(e) => setMobile(e.target.value)} disabled={otpSent || isVerified} />
+                  {!isVerified && (
+                     <Button type="button" onClick={handleSendOtp} disabled={loading || otpSent}>
+                       {loading && !otpSent ? 'Sending...' : 'Send OTP'}
+                     </Button>
+                  )}
+                  {isVerified && <div className="flex items-center text-green-600 font-semibold"><ShieldCheck className="mr-2 h-5 w-5"/> Verified</div>}
+                </div>
+                {otpSent && (
+                    <div className="flex gap-2 mt-2">
+                        <Input id="otp" type="text" placeholder="Enter 6-digit OTP" required value={otp} onChange={(e) => setOtp(e.target.value)} />
+                        <Button type="button" onClick={handleVerifyOtp} disabled={loading}>
+                            {loading ? 'Verifying...' : 'Verify OTP'}
+                        </Button>
+                    </div>
+                )}
+                <p className="text-xs text-muted-foreground">OTP verification required.</p>
               </div>
                <div className="grid gap-2">
                  <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
@@ -179,7 +242,7 @@ export default function SignupPage() {
               </Label>
             </div>
             
-            <Button type="submit" className="w-full font-headline text-lg" disabled={loading}>
+            <Button type="submit" className="w-full font-headline text-lg" disabled={loading || !isVerified}>
               {loading ? 'Creating Account...' : (
                 <>
                   <Rocket className="mr-2" />
@@ -199,3 +262,11 @@ export default function SignupPage() {
     </div>
   );
 }
+
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier;
+  }
+}
+
+    
