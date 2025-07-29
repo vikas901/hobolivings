@@ -1,7 +1,17 @@
+
+'use client';
+
 import Link from 'next/link';
 import { Home, Facebook, Twitter, Instagram } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function Footer() {
+  const [year, setYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-secondary text-secondary-foreground">
       <div className="container py-8">
@@ -23,7 +33,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-4 border-t border-border/50 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Hobo Livings. All rights reserved.</p>
+          <p>&copy; {year} Hobo Livings. All rights reserved.</p>
         </div>
       </div>
     </footer>
