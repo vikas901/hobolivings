@@ -61,19 +61,11 @@ export default function SignupPage() {
       toast({ title: 'Welcome to Hobo Livings!', description: 'Your account has been created successfully.' });
       router.push('/');
     } catch (error: any) {
-      if (error.code === 'auth/unauthorized-domain') {
-        toast({
-            variant: 'destructive',
-            title: 'Sign-in Failed',
-            description: 'This domain is not authorized for Google Sign-In. Please contact support.',
-        });
-      } else {
         toast({
             variant: 'destructive',
             title: 'Google Sign-In Failed',
             description: error.message,
         });
-      }
     } finally {
       setLoading(false);
     }
