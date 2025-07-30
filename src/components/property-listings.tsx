@@ -145,7 +145,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
                 placeholder="Search by city, location, or landmark..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-14 pl-12 pr-4 text-base rounded-full shadow-lg"
+                className="w-full h-14 pl-12 pr-4 text-base rounded-full shadow-lg text-foreground"
               />
             </div>
           </div>
