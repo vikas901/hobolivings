@@ -93,6 +93,9 @@ function LoginContent() {
 
   const signupLink = role === 'owner' ? '/signup/owner' : '/signup/user';
   const signupText = role === 'owner' ? 'Sign up as an Owner' : 'Sign up';
+  const loginTitle = role === 'owner' ? 'Owner Login' : 'Welcome Back';
+  const loginDescription = role === 'owner' ? 'Login to list and manage your properties.' : 'Login to access your account.';
+
 
   return (
       <Card className="w-full max-w-sm mx-4">
@@ -100,8 +103,8 @@ function LoginContent() {
             <Link href="/" className="flex justify-center mb-4">
                 <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} priority />
             </Link>
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
-          <CardDescription>Login to access your account.</CardDescription>
+          <CardTitle className="text-2xl font-headline">{loginTitle}</CardTitle>
+          <CardDescription>{loginDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
