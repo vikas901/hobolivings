@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import {
   Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, WashingMachine, Bath, Sparkles, Camera, Heart, Share2, ArrowRight
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface PropertyDetailModalProps {
   property: Property;
@@ -32,7 +33,7 @@ const amenityIcons: { [key: string]: React.ReactNode } = {
 };
 
 export function PropertyDetailModal({ property, isOpen, onClose }: PropertyDetailModalProps) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -60,6 +61,8 @@ export function PropertyDetailModal({ property, isOpen, onClose }: PropertyDetai
     navigator.clipboard.writeText(window.location.href);
     toast({ title: 'Link Copied!', description: 'Property link copied to clipboard.' });
   };
+  
+  const isOwner = userProfile?.profileType === 'owner';
 
   if (!property) return null;
 
@@ -165,9 +168,23 @@ export function PropertyDetailModal({ property, isOpen, onClose }: PropertyDetai
              <Separator className="my-4" />
 
             <div className="flex flex-col sm:flex-row gap-2 mt-6">
-                <Button onClick={handleBookNow} className="flex-1 font-headline">
-                    Book Now <ArrowRight className="ml-2" />
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex-1">
+                        <Button onClick={handleBookNow} className="w-full font-headline" disabled={isOwner}>
+                            Book Now <ArrowRight className="ml-2" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {isOwner && (
+                      <TooltipContent>
+                        <p>Property owners cannot book properties.</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+
                 <div className="flex gap-2">
                    <Button variant="outline" size="icon" onClick={handleSave} aria-label="Save Property">
                     <Heart className="h-5 w-5" />

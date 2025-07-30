@@ -49,7 +49,7 @@ export default function Header() {
     return <User className="h-4 w-4" />;
   };
 
-  const canShowListPropertyButton = !user || (userProfile && userProfile.profileType === 'owner');
+  const canShowListPropertyButton = !user || userProfile?.profileType === 'owner';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
