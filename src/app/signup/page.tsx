@@ -166,7 +166,7 @@ export default function SignupPage() {
             title: 'Mobile Number Taken', 
             description: 'This mobile number is already registered' 
           });
-          setLoading(false); // Make sure to stop loading
+          setLoading(false);
           return;
         }
       }
@@ -255,7 +255,7 @@ export default function SignupPage() {
         </Link>
       </div>
 
-      <Card className="w-full max-w-2xl bg-secondary/50">
+      <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl md:text-3xl font-headline">
             Hobo Livings – Sign Up Form

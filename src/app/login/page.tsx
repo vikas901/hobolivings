@@ -89,7 +89,7 @@ export default function LoginPage() {
           <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
         </Link>
       </div>
-      <Card className="w-full max-w-sm bg-secondary/50">
+      <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Login</CardTitle>
           <CardDescription>Enter your email below to login to your account.</CardDescription>
