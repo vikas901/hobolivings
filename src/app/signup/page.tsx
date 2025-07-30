@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Home, Rocket, Loader2 } from 'lucide-react';
+import { Rocket, Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -246,16 +246,15 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4 md:p-8">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-8">
       {/* Header */}
       <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
-          <Home className="h-6 w-6" />
-          <span className="font-bold font-headline text-lg">Hobo Livings</span>
+          <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
         </Link>
       </div>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl bg-secondary/50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl md:text-3xl font-headline">
             Hobo Livings – Sign Up Form
@@ -497,5 +496,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    

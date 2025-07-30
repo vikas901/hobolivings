@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
@@ -11,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Home } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -85,8 +85,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-secondary">
        <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
-          <Home className="h-6 w-6" />
-          <span className="font-bold font-headline text-lg">Hobo Livings</span>
+          <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
         </Link>
       </div>
       <Card className="w-full max-w-sm">
