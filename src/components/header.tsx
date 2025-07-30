@@ -8,7 +8,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Home } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -19,12 +19,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import logo from '@/assets/logo.png';
 
 export default function Header() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -48,33 +48,6 @@ export default function Header() {
     }
   };
 
-  const Logo = () => {
-    if (logoError) {
-      console.error('Header: Failed to load logo.png, rendering fallback.');
-      return (
-        <div className="flex items-center space-x-2">
-            <Home className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg font-headline">Hobo Livings</span>
-        </div>
-      );
-    }
-    return (
-      <Image 
-        src="/logo.png" 
-        alt="Hobo Livings Logo" 
-        width={140} 
-        height={40} 
-        onError={() => {
-            setLogoError(true);
-        }}
-        onLoad={() => {
-            console.log("Header: logo.png loaded successfully.");
-        }}
-        priority
-      />
-    );
-  };
-
   const getAvatarFallback = () => {
     if (user?.displayName) {
         return user.displayName.charAt(0).toUpperCase();
@@ -89,7 +62,13 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Logo />
+          <Image 
+            src={logo} 
+            alt="Hobo Livings Logo" 
+            width={140} 
+            height={40}
+            priority
+          />
         </Link>
         <div className="flex-1"></div>
         <nav className="flex items-center space-x-2 sm:space-x-4">

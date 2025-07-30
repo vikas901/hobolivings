@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -11,11 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket, Loader2, Home } from 'lucide-react';
+import { Rocket, Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import logo from '@/assets/logo.png';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 48 48" {...props}>
@@ -164,7 +166,7 @@ export default function SignupPage() {
             title: 'Mobile Number Taken', 
             description: 'This mobile number is already registered' 
           });
-          setLoading(false);
+          setLoading(false); // Make sure to stop loading
           return;
         }
       }
@@ -249,8 +251,7 @@ export default function SignupPage() {
       {/* Header */}
       <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
-          <Home className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg font-headline">Hobo Livings</span>
+          <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
         </Link>
       </div>
 
