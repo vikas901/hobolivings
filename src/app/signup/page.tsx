@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,7 +25,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
       <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.618-3.317-11.28-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
       <path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.407 44 30.564 44 24c0-1.341-.138-2.65-.389-3.917z" />
     </svg>
-  );
+);
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -71,7 +72,6 @@ export default function SignupPage() {
     }
   };
 
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -92,16 +92,16 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-        if (mobile) {
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, where("mobile", "==", mobile));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                toast({ variant: 'destructive', title: 'Signup Failed', description: 'This mobile number is already in use.' });
-                setLoading(false);
-                return;
-            }
-        }
+      if (mobile) {
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("mobile", "==", mobile));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+              toast({ variant: 'destructive', title: 'Signup Failed', description: 'This mobile number is already in use.' });
+              setLoading(false);
+              return;
+          }
+      }
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
