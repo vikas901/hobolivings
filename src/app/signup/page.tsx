@@ -205,7 +205,7 @@ export default function SignupPage() {
                         <SelectItem value="Delhi">Delhi</SelectItem>
                         <SelectItem value="Noida">Noida</SelectItem>
                         <SelectItem value="Greater Noida">Greater Noida</SelectItem>
-                        <SelectItem value="Gurugram">Gurugram</item>
+                        <SelectItem value="Gurugram">Gurugram</SelectItem>
                         <SelectItem value="Bangalore">Bangalore</SelectItem>
                       </SelectContent>
                     </Select>
