@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useMemo, type FC } from 'react';
+import { useState, useMemo, useEffect, type FC } from 'react';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -17,6 +19,8 @@ import { PropertyDetailModal } from './property-detail-modal';
 import { Skeleton } from './ui/skeleton';
 
 const PropertyListings: FC = () => {
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 25000]);
   const [selectedCity, setSelectedCity] = useState('all');
@@ -25,9 +29,43 @@ const PropertyListings: FC = () => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [heroImageUrl, setHeroImageUrl] = useState('https://placehold.co/1600x600.png');
+
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setLoading(true);
+      try {
+        const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
+        const querySnapshot = await getDocs(q);
+        const fetchedProperties = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Property[];
+        
+        // Combine fetched properties with dummy properties, avoiding duplicates
+        const combinedProperties = [...dummyProperties];
+        const dummyIds = new Set(dummyProperties.map(p => p.id));
+        fetchedProperties.forEach(prop => {
+            if (!dummyIds.has(prop.id)) {
+                combinedProperties.push(prop);
+            }
+        });
+
+        setAllProperties(combinedProperties);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        setAllProperties(dummyProperties); // Fallback to dummy data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   const filteredProperties = useMemo(() => {
-    return dummyProperties.filter((property) => {
+    return allProperties.filter((property) => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         property.title.toLowerCase().includes(searchLower) ||
@@ -51,6 +89,7 @@ const PropertyListings: FC = () => {
     selectedType,
     selectedCategories,
     selectedAmenities,
+    allProperties
   ]);
 
   const handleCategoryChange = (category: PropertyCategory) => {
@@ -136,10 +175,23 @@ const PropertyListings: FC = () => {
     </div>
   );
 
+  const renderLoadingSkeletons = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center">
-        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url('https://placehold.co/1600x600.png')`}} data-ai-hint="student campus banner" /> 
+        <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url('${heroImageUrl}')`}} data-ai-hint="student campus banner" /> 
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 container text-white px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold">Find Your Student Haven</h1>
@@ -173,7 +225,7 @@ const PropertyListings: FC = () => {
           <div className="lg:col-span-3">
             <div className="flex justify-between items-center mb-4">
               <div className="text-muted-foreground">
-                {`${filteredProperties.length} properties found`}
+                {!loading && `${filteredProperties.length} properties found`}
               </div>
               <div className="flex items-center gap-2">
                 <div className="lg:hidden">
@@ -192,7 +244,9 @@ const PropertyListings: FC = () => {
               </div>
             </div>
             
-            {viewMode === 'list' ? (
+            {loading ? (
+              renderLoadingSkeletons()
+            ) : viewMode === 'list' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProperties.length > 0 ? (
                   filteredProperties.map((property) => (
