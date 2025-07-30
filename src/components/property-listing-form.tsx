@@ -33,6 +33,7 @@ const formSchema = z.object({
   amenities: z.array(z.string()).min(1, 'Please select at least one amenity.'),
   roomOptions: z.array(roomOptionSchema).min(1, 'Please add at least one room option.'),
   mainImage: z.string().url('Please enter a valid URL.'),
+  dataAiHint: z.string().max(25, 'Hint should be a few keywords, max 25 characters.').optional(),
 });
 
 type PropertyFormValues = z.infer<typeof formSchema>;
@@ -52,6 +53,7 @@ export default function PropertyListingForm() {
       amenities: [],
       roomOptions: [{ occupancy: 'Single', price: 0 }],
       mainImage: '',
+      dataAiHint: '',
     },
   });
   
@@ -78,22 +80,24 @@ export default function PropertyListingForm() {
         const newPropertyData = {
             ...data,
             ownerId: user.uid,
-            status: 'approved' as const, // Bypass admin approval for now
-            price: lowestPrice, // Set the main price to the lowest room option price
+            status: 'approved' as const,
+            price: lowestPrice,
             image: data.mainImage,
-            images: [data.mainImage], // Use main image as the only image for now
+            images: [data.mainImage],
             rating: 0,
             reviews: 0,
             createdAt: serverTimestamp(),
-            // Dummy map data until we integrate a map service
             map: { 
                 lat: 0, 
                 lng: 0, 
                 nearby: []
             }
         };
+        
+        // This is to avoid sending the mainImage field to firestore
+        const { mainImage, ...restOfData } = newPropertyData;
 
-        await addDoc(collection(db, 'properties'), newPropertyData);
+        await addDoc(collection(db, 'properties'), restOfData);
 
         toast({
             title: 'Property Listed!',
@@ -312,6 +316,18 @@ export default function PropertyListingForm() {
                 <FormLabel>Main Image URL</FormLabel>
                 <FormControl><Input placeholder="https://placehold.co/600x400.png" {...field} /></FormControl>
                 <FormDescription>For now, please provide a URL to an image. We'll add file uploads later.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="dataAiHint"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image Keywords (for AI)</FormLabel>
+                <FormControl><Input placeholder="e.g., modern hostel" {...field} /></FormControl>
+                <FormDescription>Help our AI find better images later by providing one or two keywords.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
