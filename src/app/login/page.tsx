@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Home } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 48 48" {...props}>
@@ -82,13 +83,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary">
+    <div className="flex min-h-screen items-center justify-center bg-background">
        <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
-          <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
+          <Home className="h-6 w-6 text-primary" />
+          <span className="font-bold text-lg font-headline">Hobo Livings</span>
         </Link>
       </div>
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm bg-secondary/50">
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Login</CardTitle>
           <CardDescription>Enter your email below to login to your account.</CardDescription>

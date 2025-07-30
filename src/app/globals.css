@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 222 84% 4.9%;
+    --background: 345 9% 10%;
     --foreground: 210 40% 98%;
-    --card: 222 84% 4.9%;
+    --card: 345 9% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 84% 4.9%;
+    --popover: 345 9% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 0 72% 51%;
+    --primary: 356 79% 54%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
+    --secondary: 221 39% 11%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
+    --muted: 221 39% 15%;
     --muted-foreground: 215 20% 65%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 221 39% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 0 72% 51%;
+    --border: 221 39% 20%;
+    --input: 221 39% 18%;
+    --ring: 356 79% 54%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -32,25 +32,25 @@
   }
 
   .dark {
-    --background: 222 84% 4.9%;
+    --background: 345 9% 10%;
     --foreground: 210 40% 98%;
-    --card: 222 84% 4.9%;
+    --card: 345 9% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 84% 4.9%;
+    --popover: 345 9% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 0 72% 51%;
+    --primary: 356 79% 54%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
+    --secondary: 221 39% 11%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
+    --muted: 221 39% 15%;
     --muted-foreground: 215 20% 65%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 221 39% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 0 72% 51%;
+    --border: 221 39% 20%;
+    --input: 221 39% 18%;
+    --ring: 356 79% 54%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
