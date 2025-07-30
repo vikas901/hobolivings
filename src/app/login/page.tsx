@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import logo from '@/assets/logo.png';
+import { Loader2 } from 'lucide-react';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 48 48" {...props}>
@@ -57,7 +59,6 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if user exists in Firestore, if not, create a new document
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
       if (!userDoc.exists()) {
@@ -83,16 +84,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary">
-       <div className="absolute top-4 left-4">
-        <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
-          <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
-        </Link>
-      </div>
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl font-headline">Login</CardTitle>
-          <CardDescription>Enter your email below to login to your account.</CardDescription>
+    <div className="flex min-h-screen w-full items-center justify-center bg-secondary">
+      <Card className="w-full max-w-sm mx-4">
+        <CardHeader className="text-center">
+            <Link href="/" className="flex justify-center mb-4">
+                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} priority />
+            </Link>
+          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
+          <CardDescription>Login to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
@@ -120,20 +119,28 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
 
-          <Separator className="my-4" />
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
 
           <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
-            <GoogleIcon className="mr-2 h-5 w-5" />
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-5 w-5" />}
             Sign in with Google
           </Button>
 
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
+            <Link href="/signup" className="underline font-semibold text-primary">
               Sign up
             </Link>
           </div>

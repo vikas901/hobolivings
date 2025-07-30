@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -44,7 +45,7 @@ export default function ListYourPropertyPage() {
   const renderContent = () => {
     if (authLoading || loadingProfile) {
       return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           <Skeleton className="h-8 w-1/2" />
           <Skeleton className="h-4 w-3/4" />
           <Skeleton className="h-10 w-1/4" />
@@ -54,9 +55,9 @@ export default function ListYourPropertyPage() {
 
     if (!user) {
       return (
-        <div className="text-center">
+        <CardContent className="text-center p-8">
           <AlertCircle className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-4 text-2xl font-bold">Authentication Required</h2>
+          <h2 className="mt-4 text-2xl font-bold font-headline">Authentication Required</h2>
           <p className="mt-2 text-muted-foreground">
             You need to be logged in to list a property.
           </p>
@@ -68,31 +69,33 @@ export default function ListYourPropertyPage() {
               <Link href="/signup">Sign Up</Link>
             </Button>
           </div>
-        </div>
+        </CardContent>
       );
     }
 
     if (profileType !== 'owner') {
        return (
-        <div className="text-center">
+        <CardContent className="text-center p-8">
           <AlertCircle className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-4 text-2xl font-bold">Incorrect Profile Type</h2>
+          <h2 className="mt-4 text-2xl font-bold font-headline">Incorrect Profile Type</h2>
           <p className="mt-2 text-muted-foreground">
-            Only users with a "Property Owner" profile can list properties.
+            Only property owners can list new properties.
           </p>
            <p className="mt-1 text-sm text-muted-foreground">
-             Please update your profile or create a new owner account.
+             Please create a new owner account to continue.
           </p>
           <div className="mt-6">
-            <Button variant="outline">Go to Your Profile</Button>
+            <Button asChild>
+                <Link href="/signup/owner">Create an Owner Account</Link>
+            </Button>
           </div>
-        </div>
+        </CardContent>
       );
     }
 
     // Main content for property owners
     return (
-      <div className="w-full">
+      <>
          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-3xl font-headline">
               <PlusCircle />
@@ -109,7 +112,7 @@ export default function ListYourPropertyPage() {
               <p className="text-muted-foreground mt-2">This is where the detailed form to collect property information will be.</p>
             </div>
           </CardContent>
-      </div>
+      </>
     );
   };
 
@@ -127,5 +130,3 @@ export default function ListYourPropertyPage() {
     </div>
   );
 }
-
-    
