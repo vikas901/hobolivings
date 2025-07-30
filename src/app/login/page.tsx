@@ -65,16 +65,21 @@ function LoginContent() {
 
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
+
+      // If the user document doesn't exist, create it with the correct role.
       if (!userDoc.exists()) {
         await setDoc(userDocRef, {
             uid: user.uid,
             name: user.displayName,
             email: user.email,
             profileType: role === 'owner' ? 'owner' : 'student',
+            createdAt: new Date().toISOString(),
         });
       }
 
       toast({ title: 'Success', description: 'Logged in successfully!' });
+      
+      // Redirect based on the role context from the URL
       if (role === 'owner') {
         router.push('/list-your-property');
       } else {
