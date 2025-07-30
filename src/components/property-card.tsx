@@ -5,46 +5,31 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, ArrowRight, WashingMachine, Bath, Sparkles, Camera } from 'lucide-react';
 
 interface PropertyCardProps {
   property: Property;
+  onCardClick: (property: Property) => void;
 }
 
-const amenityIcons = {
+const amenityIcons: { [key: string]: React.ReactNode } = {
   WiFi: <Wifi className="h-4 w-4" />,
   AC: <Wind className="h-4 w-4" />,
   Food: <UtensilsCrossed className="h-4 w-4" />,
   Parking: <ParkingCircle className="h-4 w-4" />,
+  Laundry: <WashingMachine className="h-4 w-4" />,
+  Geyser: <Bath className="h-4 w-4" />,
+  Housekeeping: <Sparkles className="h-4 w-4" />,
+  CCTV: <Camera className="h-4 w-4" />,
 };
 
-export default function PropertyCard({ property }: PropertyCardProps) {
-  const { user } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const handleBookNow = () => {
-    if (!user) {
-      toast({
-        title: 'Authentication Required',
-        description: 'Please login to book a property.',
-        variant: 'destructive',
-      });
-      router.push('/login');
-    } else {
-      toast({
-        title: 'Coming Soon!',
-        description: 'Booking functionality is not yet implemented.',
-      });
-    }
-  };
-
+export default function PropertyCard({ property, onCardClick }: PropertyCardProps) {
+  
   return (
-    <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card 
+      className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+      onClick={() => onCardClick(property)}
+    >
       <CardHeader className="p-0 relative">
         <Badge className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground">{property.type}</Badge>
         <Image
@@ -73,6 +58,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <div className="flex items-center">
             <Star className="h-5 w-5 text-yellow-500 mr-1" />
             <span className="font-bold">{property.rating.toFixed(1)}</span>
+            <span className="text-xs text-muted-foreground ml-1">({property.reviews})</span>
           </div>
         </div>
       </CardContent>
@@ -81,8 +67,8 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <p className="text-xl font-bold text-primary">₹{property.price.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">/ month</p>
         </div>
-        <Button onClick={handleBookNow}>
-          Book Now <ArrowRight className="ml-2 h-4 w-4" />
+        <Button>
+          View Details <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

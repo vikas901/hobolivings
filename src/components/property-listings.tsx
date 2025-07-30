@@ -13,6 +13,7 @@ import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/ty
 import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { PropertyDetailModal } from './property-detail-modal';
 
 interface PropertyListingsProps {
   allProperties: Property[];
@@ -20,12 +21,13 @@ interface PropertyListingsProps {
 
 const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 20000]);
+  const [priceRange, setPriceRange] = useState([0, 25000]);
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedType, setSelectedType] = useState<PropertyType | 'All'>('All');
   const [selectedCategories, setSelectedCategories] = useState<PropertyCategory[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
@@ -67,6 +69,14 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
     );
   };
   
+  const handleCardClick = (property: Property) => {
+    setSelectedProperty(property);
+  }
+
+  const handleModalClose = () => {
+    setSelectedProperty(null);
+  }
+
   const FiltersComponent = () => (
     <div className="space-y-6">
       <div>
@@ -87,7 +97,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
         <Slider
           className="mt-4"
           min={0}
-          max={20000}
+          max={25000}
           step={500}
           value={priceRange}
           onValueChange={(value) => setPriceRange(value)}
@@ -185,7 +195,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProperties.length > 0 ? (
                   filteredProperties.map((property) => (
-                    <PropertyCard key={property.id} property={property} />
+                    <PropertyCard key={property.id} property={property} onCardClick={handleCardClick} />
                   ))
                 ) : (
                   <p className="md:col-span-2 xl:col-span-3 text-center text-muted-foreground">No properties match your criteria. Try adjusting your filters.</p>
@@ -199,6 +209,13 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
           </div>
         </div>
       </div>
+      {selectedProperty && (
+        <PropertyDetailModal 
+            property={selectedProperty}
+            isOpen={!!selectedProperty}
+            onClose={handleModalClose}
+        />
+      )}
     </>
   );
 };
