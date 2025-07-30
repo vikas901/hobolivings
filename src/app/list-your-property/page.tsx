@@ -33,7 +33,7 @@ export default function ListYourPropertyPage() {
           </p>
           <div className="mt-6 flex justify-center gap-4">
             <Button asChild>
-              <Link href="/login">Login</Link>
+              <Link href="/login?role=owner">Login</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/signup/owner">Create an Owner Account</Link>
