@@ -32,6 +32,8 @@ export const properties: Property[] = [
         { name: 'GL Bajaj Institute', distance: '1.2km' },
       ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner1',
   },
   {
     id: '2',
@@ -64,6 +66,8 @@ export const properties: Property[] = [
         { name: 'IIM Lucknow (Noida Campus)', distance: '1km' },
       ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner2',
   },
   {
     id: '3',
@@ -96,6 +100,8 @@ export const properties: Property[] = [
             { name: 'Sharda University', distance: '2.5km' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner3',
   },
   {
     id: '4',
@@ -127,6 +133,8 @@ export const properties: Property[] = [
             { name: 'DLF Mall of India', distance: '300m' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner4',
   },
   {
     id: '5',
@@ -159,6 +167,8 @@ export const properties: Property[] = [
             { name: 'Galgotias University', distance: '500m' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner5',
   },
   {
     id: '6',
@@ -190,6 +200,8 @@ export const properties: Property[] = [
             { name: 'Sector 16 Metro', distance: '1.5km' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner6',
   },
   {
     id: '7',
@@ -220,6 +232,8 @@ export const properties: Property[] = [
             { name: 'Beta 1 Metro', distance: '1km' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner7',
   },
   {
     id: '8',
@@ -250,9 +264,13 @@ export const properties: Property[] = [
             { name: 'Sector 15 Metro', distance: '400m' },
         ],
     },
+    status: 'approved',
+    ownerId: 'dummyOwner8',
   },
 ];
 
 export const allAmenities: ('WiFi' | 'AC' | 'Food' | 'Parking' | 'Laundry' | 'Geyser' | 'Housekeeping' | 'CCTV')[] = ['WiFi', 'AC', 'Food', 'Parking', 'Laundry', 'Geyser', 'Housekeeping', 'CCTV'];
 export const allCategories: ('Hostel' | 'PG' | 'Room' | 'Hotel')[] = ['Hostel', 'PG', 'Room', 'Hotel'];
 export const allCities = ['Noida', 'Greater Noida'];
+
+    

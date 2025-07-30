@@ -1,6 +1,7 @@
 export type Amenity = 'WiFi' | 'AC' | 'Food' | 'Parking' | 'Laundry' | 'Geyser' | 'Housekeeping' | 'CCTV';
 export type PropertyType = 'Boys' | 'Girls' | 'Co-ed';
 export type PropertyCategory = 'Hostel' | 'PG' | 'Room' | 'Hotel';
+export type PropertyStatus = 'pending' | 'approved' | 'rejected';
 
 export interface RoomOption {
   occupancy: 'Single' | 'Double' | 'Triple';
@@ -31,4 +32,8 @@ export interface Property {
       distance: string;
     }[];
   };
+  status: PropertyStatus;
+  ownerId: string;
 }
+
+    

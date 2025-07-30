@@ -107,7 +107,7 @@ export default function SignupPage() {
           uid: user.uid,
           name: user.displayName || 'Google User',
           email: user.email,
-          profileType: 'student',
+          profileType: 'student', // Default, user can change this later
           createdAt: new Date().toISOString(),
         });
       }
@@ -403,13 +403,13 @@ export default function SignupPage() {
                   <RadioGroupItem value="student" id="type-student" />
                   <Label htmlFor="type-student">Student</Label>
                 </div>
+                 <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="owner" id="type-owner" />
+                  <Label htmlFor="type-owner">Property Owner</Label>
+                </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="professional" id="type-professional" />
                   <Label htmlFor="type-professional">Working Professional</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="other" id="type-other" />
-                  <Label htmlFor="type-other">Other</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -497,3 +497,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    
