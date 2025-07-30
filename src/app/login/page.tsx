@@ -6,7 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import logo from '@/assets/logo.png';
 import { Loader2 } from 'lucide-react';
+import type { UserProfile } from '@/lib/types';
 
 function LoginContent() {
   const [email, setEmail] = useState('');
@@ -28,13 +30,56 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Step 1: Authenticate the user with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Step 2: Fetch user profile from Firestore to check their role
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        throw new Error("User profile not found. Please contact support.");
+      }
+
+      const userProfile = userDoc.data() as UserProfile;
+
+      // Step 3: Enforce role-based login paths
+      const isOwnerLoginFlow = role === 'owner';
+      const isOwnerProfile = userProfile.profileType === 'owner';
+
+      if (isOwnerProfile && !isOwnerLoginFlow) {
+         // Prevent owner from logging in via student/general flow
+        await auth.signOut(); // Log the user out immediately
+        toast({
+          variant: 'destructive',
+          title: 'Login Path Restricted',
+          description: "This login is for students. Please use the 'List your property' page to log in as an owner.",
+        });
+        router.push('/list-your-property');
+        return;
+      }
+      
+      if (!isOwnerProfile && isOwnerLoginFlow) {
+         // Prevent student from logging in via owner flow
+        await auth.signOut();
+        toast({
+          variant: 'destructive',
+          title: 'Login Path Restricted',
+          description: "This login is for property owners. Please use the main login page.",
+        });
+        router.push('/login');
+        return;
+      }
+
+      // Step 4: Redirect to the correct dashboard
       toast({ title: 'Success', description: 'Logged in successfully!' });
-      if (role === 'owner') {
+      if (isOwnerLoginFlow) {
         router.push('/list-your-property');
       } else {
         router.push('/');
       }
+
     } catch (error: any) {
       toast({
         variant: 'destructive',
