@@ -255,7 +255,7 @@ export default function SignupPage() {
         </Link>
       </div>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl bg-background">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl md:text-3xl font-headline">
             Hobo Livings – Sign Up Form
@@ -497,5 +497,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    
