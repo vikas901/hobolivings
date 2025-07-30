@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type Amenity = 'WiFi' | 'AC' | 'Food' | 'Parking' | 'Laundry' | 'Geyser' | 'Housekeeping' | 'CCTV';
 export type PropertyType = 'Boys' | 'Girls' | 'Co-ed';
 export type PropertyCategory = 'Hostel' | 'PG' | 'Room' | 'Hotel';
@@ -34,6 +36,7 @@ export interface Property {
   };
   status: PropertyStatus;
   ownerId: string;
+  createdAt?: Timestamp;
 }
 
 export type UserProfileType = 'student' | 'professional' | 'owner';

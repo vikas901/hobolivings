@@ -11,8 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
-import { Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useState } from 'react';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
@@ -35,6 +39,9 @@ type PropertyFormValues = z.infer<typeof formSchema>;
 
 export default function PropertyListingForm() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,14 +60,56 @@ export default function PropertyListingForm() {
     control: form.control,
   });
 
-  const onSubmit = (data: PropertyFormValues) => {
-    // TODO: Connect to firebase to save the data
-    console.log(data);
-    toast({
-      title: 'Form Submitted!',
-      description: 'Your property listing has been submitted for review.',
-    });
-    form.reset();
+  const onSubmit = async (data: PropertyFormValues) => {
+    if (!user) {
+        toast({
+            variant: 'destructive',
+            title: 'Authentication Error',
+            description: 'You must be logged in to list a property.',
+        });
+        return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+        const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
+
+        const newPropertyData = {
+            ...data,
+            ownerId: user.uid,
+            status: 'approved' as const, // Bypass admin approval for now
+            price: lowestPrice, // Set the main price to the lowest room option price
+            image: data.mainImage,
+            images: [data.mainImage], // Use main image as the only image for now
+            rating: 0,
+            reviews: 0,
+            createdAt: serverTimestamp(),
+            // Dummy map data until we integrate a map service
+            map: { 
+                lat: 0, 
+                lng: 0, 
+                nearby: []
+            }
+        };
+
+        await addDoc(collection(db, 'properties'), newPropertyData);
+
+        toast({
+            title: 'Property Listed!',
+            description: 'Your property is now live on the platform.',
+        });
+        form.reset();
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Submission Failed',
+            description: 'There was an error listing your property. Please try again.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -261,7 +310,7 @@ export default function PropertyListingForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Main Image URL</FormLabel>
-                <FormControl><Input placeholder="https://example.com/image.png" {...field} /></FormControl>
+                <FormControl><Input placeholder="https://placehold.co/600x400.png" {...field} /></FormControl>
                 <FormDescription>For now, please provide a URL to an image. We'll add file uploads later.</FormDescription>
                 <FormMessage />
               </FormItem>
@@ -269,7 +318,10 @@ export default function PropertyListingForm() {
           />
         </div>
 
-        <Button type="submit" size="lg">Submit for Review</Button>
+        <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? 'Submitting...' : 'Submit for Review'}
+        </Button>
       </form>
     </Form>
   );
