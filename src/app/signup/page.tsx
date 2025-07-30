@@ -98,7 +98,6 @@ export default function SignupPage() {
           const querySnapshot = await getDocs(q);
           if (!querySnapshot.empty) {
               toast({ variant: 'destructive', title: 'Signup Failed', description: 'This mobile number is already in use.' });
-              setLoading(false);
               return;
           }
       }
