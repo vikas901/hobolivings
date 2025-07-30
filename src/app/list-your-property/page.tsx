@@ -7,7 +7,8 @@ import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, PlusCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import PropertyListingForm from '@/components/property-listing-form';
 
 export default function ListYourPropertyPage() {
   const { user, userProfile, loading } = useAuth();
@@ -68,7 +69,6 @@ export default function ListYourPropertyPage() {
       <>
          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-3xl font-headline">
-              <PlusCircle />
               List Your Property
             </CardTitle>
             <CardDescription>
@@ -76,11 +76,7 @@ export default function ListYourPropertyPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Property Listing Form will go here */}
-            <div className="p-8 border-2 border-dashed rounded-lg text-center">
-              <h3 className="text-xl font-semibold">Property Listing Form Coming Soon!</h3>
-              <p className="text-muted-foreground mt-2">This is where the detailed form to collect property information will be.</p>
-            </div>
+            <PropertyListingForm />
           </CardContent>
       </>
     );
