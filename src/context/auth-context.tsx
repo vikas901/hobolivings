@@ -2,16 +2,10 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc, DocumentData } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface UserProfile extends DocumentData {
-  uid: string;
-  email: string;
-  name: string;
-  profileType: 'student' | 'professional' | 'owner';
-}
+import type { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;

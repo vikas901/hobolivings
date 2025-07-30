@@ -36,4 +36,17 @@ export interface Property {
   ownerId: string;
 }
 
-    
+export type UserProfileType = 'student' | 'professional' | 'owner';
+
+export interface UserProfile {
+    uid: string;
+    email: string;
+    name: string;
+    profileType: UserProfileType;
+    createdAt: string;
+
+    // Owner-specific fields
+    phone?: string;
+    address?: string;
+    companyType?: 'individual' | 'company';
+}
