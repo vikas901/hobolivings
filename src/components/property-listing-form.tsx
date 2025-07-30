@@ -32,7 +32,10 @@ const formSchema = z.object({
   type: z.enum(['Boys', 'Girls', 'Co-ed'], { required_error: 'Please select a property type.' }),
   amenities: z.array(z.string()).min(1, 'Please select at least one amenity.'),
   roomOptions: z.array(roomOptionSchema).min(1, 'Please add at least one room option.'),
-  mainImage: z.string().url('Please enter a valid URL.'),
+  mainImage: z.string().url('Please enter a valid URL.').refine(
+    (url) => /\.(jpg|jpeg|png|webp)$/i.test(new URL(url).pathname),
+    { message: 'URL must be a direct link to a JPG, PNG, or WEBP image.' }
+  ),
   dataAiHint: z.string().max(25, 'Hint should be a few keywords, max 25 characters.').optional(),
 });
 
@@ -314,7 +317,7 @@ export default function PropertyListingForm() {
               <FormItem>
                 <FormLabel>Main Image URL</FormLabel>
                 <FormControl><Input placeholder="https://placehold.co/600x400.png" {...field} /></FormControl>
-                <FormDescription>For now, please provide a URL to an image. We'll add file uploads later.</FormDescription>
+                <FormDescription>Please provide a direct URL to an image (e.g., ending in .png or .jpg).</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
