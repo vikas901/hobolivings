@@ -1,11 +1,7 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
@@ -14,36 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, PlusCircle } from 'lucide-react';
 
 export default function ListYourPropertyPage() {
-  const { user, loading: authLoading } = useAuth();
-  const [profileType, setProfileType] = useState<string | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            setProfileType(userDoc.data().profileType);
-          }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
-        } finally {
-          setLoadingProfile(false);
-        }
-      } else {
-        setLoadingProfile(false);
-      }
-    };
-
-    if (!authLoading) {
-      fetchUserProfile();
-    }
-  }, [user, authLoading]);
+  const { user, userProfile, loading } = useAuth();
 
   const renderContent = () => {
-    if (authLoading || loadingProfile) {
+    if (loading) {
       return (
         <div className="space-y-4 p-6">
           <Skeleton className="h-8 w-1/2" />
@@ -57,32 +27,32 @@ export default function ListYourPropertyPage() {
       return (
         <CardContent className="text-center p-8">
           <AlertCircle className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-4 text-2xl font-bold font-headline">Authentication Required</h2>
+          <h2 className="mt-4 text-2xl font-bold font-headline">Get Started Listing Your Property</h2>
           <p className="mt-2 text-muted-foreground">
-            You need to be logged in to list a property.
+            You need to be logged in as a property owner to list a property.
           </p>
           <div className="mt-6 flex justify-center gap-4">
             <Button asChild>
               <Link href="/login">Login</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/signup/owner">Create an Owner Account</Link>
             </Button>
           </div>
         </CardContent>
       );
     }
 
-    if (profileType !== 'owner') {
+    if (userProfile?.profileType !== 'owner') {
        return (
         <CardContent className="text-center p-8">
           <AlertCircle className="mx-auto h-12 w-12 text-primary" />
           <h2 className="mt-4 text-2xl font-bold font-headline">Incorrect Profile Type</h2>
           <p className="mt-2 text-muted-foreground">
-            Only property owners can list new properties.
+            This page is for property owners. Your current account is a '{userProfile?.profileType}' account.
           </p>
            <p className="mt-1 text-sm text-muted-foreground">
-             Please create a new owner account to continue.
+             Please log out and create a new owner account to continue.
           </p>
           <div className="mt-6">
             <Button asChild>
