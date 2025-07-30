@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type FC } from 'react';
+import { useState, useMemo, type FC, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -14,6 +14,7 @@ import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
+import { generateImage } from '@/ai/flows/image-generator';
 
 interface PropertyListingsProps {
   allProperties: Property[];
@@ -28,7 +29,22 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const heroImageUrl = 'https://placehold.co/1920x1080.png';
+  const [heroImageUrl, setHeroImageUrl] = useState('https://placehold.co/1920x1080.png');
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const { imageUrl } = await generateImage({ prompt: 'a vibrant and welcoming student campus' });
+        if (imageUrl) {
+          setHeroImageUrl(imageUrl);
+        }
+      } catch (error) {
+        console.error("Failed to generate hero image:", error);
+      }
+    };
+
+    fetchImage();
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
@@ -222,5 +238,3 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
 };
 
 export default PropertyListings;
-
-    
