@@ -255,3 +255,4 @@ const PropertyListings: FC<PropertyListingsProps> = () => {
 export default PropertyListings;
 
     
+    
