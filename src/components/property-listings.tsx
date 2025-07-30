@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, type FC } from 'react';
+import { useState, useMemo, type FC, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -14,6 +14,7 @@ import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
+import { generateImage } from '@/ai/flows/image-generator';
 
 interface PropertyListingsProps {
   allProperties: Property[];
@@ -28,6 +29,19 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [heroImageUrl, setHeroImageUrl] = useState('https://placehold.co/1920x1080.png');
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const { imageUrl } = await generateImage({ prompt: 'a vibrant and welcoming student campus' });
+        setHeroImageUrl(imageUrl);
+      } catch (error) {
+        console.error('Failed to generate hero image:', error);
+      }
+    };
+    fetchImage();
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
@@ -142,7 +156,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
 
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center" style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}} data-ai-hint="student campus">
+      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center" style={{backgroundImage: `url('${heroImageUrl}')`}} data-ai-hint="student campus">
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 container text-white px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold">Find Your Student Haven</h1>
