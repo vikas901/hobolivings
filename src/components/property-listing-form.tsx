@@ -94,7 +94,6 @@ export default function PropertyListingForm() {
             }
         };
         
-        // This is to avoid sending the mainImage field to firestore
         const { mainImage, ...restOfData } = newPropertyData;
 
         await addDoc(collection(db, 'properties'), restOfData);
