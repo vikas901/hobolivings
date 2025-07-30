@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,11 +92,20 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
+        if (mobile) {
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("mobile", "==", mobile));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                toast({ variant: 'destructive', title: 'Signup Failed', description: 'This mobile number is already in use.' });
+                setLoading(false);
+                return;
+            }
+        }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      await sendEmailVerification(user);
-
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name,
@@ -107,10 +116,10 @@ export default function SignupPage() {
       });
 
       toast({ 
-        title: '🎉 Congratulations!', 
-        description: 'Your account has been created. Please check your email to verify your account before logging in.' 
+        title: '🎉 Welcome to Hobo Livings!', 
+        description: 'Your account has been created successfully.' 
       });
-      router.push('/login');
+      router.push('/');
     } catch (error: any) {
       let errorMessage = error.message;
       if (error.code === 'auth/email-already-in-use') {
@@ -197,7 +206,7 @@ export default function SignupPage() {
                         <SelectItem value="Noida">Noida</SelectItem>
                         <SelectItem value="Greater Noida">Greater Noida</SelectItem>
                         <SelectItem value="Gurugram">Gurugram</SelectItem>
-                        <SelectItem value="Bangalore">Bangalore</selectitem>
+                        <SelectItem value="Bangalore">Bangalore</SelectItem>
                       </SelectContent>
                     </Select>
                 </div>
