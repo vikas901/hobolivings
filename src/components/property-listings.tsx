@@ -15,6 +15,7 @@ import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
 import { generateImage } from '@/ai/flows/image-generator';
+import { Skeleton } from './ui/skeleton';
 
 interface PropertyListingsProps {
   allProperties: Property[];
@@ -29,7 +30,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [heroImageUrl, setHeroImageUrl] = useState('https://placehold.co/1920x1080.png');
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchImage = async () => {
@@ -159,7 +160,11 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
 
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center" style={{backgroundImage: `url('${heroImageUrl}')`}} data-ai-hint="student campus">
+      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center" data-ai-hint="student campus">
+        {heroImageUrl ? 
+            <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url('${heroImageUrl}')`}} /> 
+            : <Skeleton className='h-full w-full' />
+        }
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 container text-white px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold">Find Your Student Haven</h1>

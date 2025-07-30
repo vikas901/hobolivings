@@ -37,6 +37,9 @@ export default function Home() {
     if (loading) {
       return (
         <div className='container mx-auto px-4 py-8'>
+           <div className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center bg-cover bg-center mb-8">
+             <Skeleton className="h-full w-full" />
+           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="space-y-2">
