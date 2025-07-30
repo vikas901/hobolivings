@@ -113,8 +113,6 @@ export default function SignupPage() {
         profileType,
         preferredCity,
       });
-      
-      await auth.signOut();
 
       toast({ 
         title: '🎉 Congratulations!', 
