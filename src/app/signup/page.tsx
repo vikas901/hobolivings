@@ -117,9 +117,18 @@ export default function SignupPage() {
 
       toast({ 
         title: '🎉 Welcome to Hobo Livings!', 
-        description: 'Your account has been created successfully.' 
+        description: 'Your account has been created successfully. Please login to continue.' 
       });
-      router.push('/');
+
+      setTimeout(() => {
+        try {
+          router.push('/login');
+        } catch (error) {
+          console.error('Router navigation failed, falling back to window.location', error);
+          window.location.href = '/login';
+        }
+      }, 2000);
+
     } catch (error: any) {
       let errorMessage = error.message;
       if (error.code === 'auth/email-already-in-use') {
