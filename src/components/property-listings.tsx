@@ -184,16 +184,18 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Desktop Filters */}
-          <aside className="hidden lg:block w-1/4 xl:w-1/5 pr-8">
-            <h2 className="text-xl font-headline font-bold mb-4">Filters</h2>
-            <FiltersComponent />
+          <aside className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-24">
+              <h2 className="text-xl font-headline font-bold mb-4">Filters</h2>
+              <FiltersComponent />
+            </div>
           </aside>
 
           {/* Listings and Mobile Filter Trigger */}
-          <div className="w-full lg:w-3/4 xl:w-4/5">
+          <div className="lg:col-span-3">
             <div className="flex justify-between items-center mb-4">
               <div className="text-muted-foreground">{filteredProperties.length} properties found</div>
               <div className="flex items-center gap-2">
