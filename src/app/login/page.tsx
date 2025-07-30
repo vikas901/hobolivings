@@ -83,7 +83,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-secondary">
        <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
           <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />

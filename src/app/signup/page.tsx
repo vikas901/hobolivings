@@ -247,7 +247,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-8">
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4 md:p-8">
       {/* Header */}
       <div className="absolute top-4 left-4">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:underline">
