@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image, { type StaticImageData } from 'next/image';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -25,12 +25,6 @@ export default function Header() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [logoError, setLogoError] = useState(false);
-
-  useEffect(() => {
-    // This effect can be used to track user status for debugging if needed
-    console.log('Header auth state changed. User:', user ? user.uid : 'logged out');
-  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -56,39 +50,17 @@ export default function Header() {
     return <User className="h-4 w-4" />;
   };
 
-  const Logo = () => {
-    if (logoError) {
-      console.error('Header: Failed to load logo, rendering fallback.');
-      return (
-        <div className="flex items-center space-x-2">
-            <Home className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg font-headline text-primary">Hobo Livings</span>
-        </div>
-      );
-    }
-    return (
-       <Image
-        src={logo}
-        alt="Hobo Livings Logo"
-        width={140}
-        height={40}
-        priority
-        onError={() => {
-          console.warn('Header: Error loading logo.png. Setting fallback.');
-          setLogoError(true);
-        }}
-        onLoad={() => {
-          console.log('Header: logo.png loaded successfully.');
-        }}
-      />
-    );
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Logo />
+          <Image
+            src={logo}
+            alt="Hobo Livings Logo"
+            width={140}
+            height={40}
+            priority
+          />
         </Link>
         <div className="flex-1"></div>
         <nav className="flex items-center space-x-2 sm:space-x-4">
@@ -129,5 +101,3 @@ export default function Header() {
     </header>
   );
 }
-
-    

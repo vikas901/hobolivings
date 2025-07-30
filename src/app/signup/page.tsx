@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Home, User } from 'lucide-react';
+import { Home, User } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
 export default function SignupPage() {

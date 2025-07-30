@@ -13,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
 import logo from '@/assets/logo.png';
 import { Loader2 } from 'lucide-react';
 
@@ -66,7 +65,7 @@ export default function LoginPage() {
             uid: user.uid,
             name: user.displayName,
             email: user.email,
-            profileType: 'student', // default profile type
+            profileType: 'student', // default profile type for Google sign-in
         });
       }
 
@@ -140,7 +139,7 @@ export default function LoginPage() {
 
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline font-semibold text-primary">
+            <Link href="/signup/user" className="underline font-semibold text-primary">
               Sign up
             </Link>
           </div>
