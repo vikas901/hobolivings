@@ -131,7 +131,7 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
         <div className="mt-2 space-y-2">
           {allAmenities.map(amenity => (
             <div key={amenity} className="flex items-center space-x-2">
-              <Checkbox id={`amenity-${amenity}`} checked={selectedAmenities.includes(amenity)} onCheckedChange={() => handleAmenityChange(amenity)} />
+              <Checkbox id={`amenity-${amenity}`} checked={selectedAmenities.includes(amenity)} onCheckedChange={() => handleAmenityChange( amenity)} />
               <Label htmlFor={`amenity-${amenity}`}>{amenity}</Label>
             </div>
           ))}
@@ -221,3 +221,5 @@ const PropertyListings: FC<PropertyListingsProps> = ({ allProperties }) => {
 };
 
 export default PropertyListings;
+
+    
