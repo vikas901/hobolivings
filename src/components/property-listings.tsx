@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useMemo, type FC, useEffect } from 'react';
+import { useState, useMemo, type FC } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -11,19 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
-import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
+import { allAmenities, allCategories, allCities, properties as dummyProperties } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
 import { Skeleton } from './ui/skeleton';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
-interface PropertyListingsProps {}
-
-const PropertyListings: FC<PropertyListingsProps> = () => {
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+const PropertyListings: FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 25000]);
   const [selectedCity, setSelectedCity] = useState('all');
@@ -33,27 +26,8 @@ const PropertyListings: FC<PropertyListingsProps> = () => {
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setLoading(true);
-      try {
-        const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
-        const querySnapshot = await getDocs(q);
-        const propertiesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
-        setAllProperties(propertiesData);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperties();
-  }, []);
-
-
   const filteredProperties = useMemo(() => {
-    return allProperties.filter((property) => {
+    return dummyProperties.filter((property) => {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         property.title.toLowerCase().includes(searchLower) ||
@@ -71,7 +45,6 @@ const PropertyListings: FC<PropertyListingsProps> = () => {
       );
     });
   }, [
-    allProperties,
     searchTerm,
     priceRange,
     selectedCity,
@@ -200,7 +173,7 @@ const PropertyListings: FC<PropertyListingsProps> = () => {
           <div className="lg:col-span-3">
             <div className="flex justify-between items-center mb-4">
               <div className="text-muted-foreground">
-                {loading ? 'Loading...' : `${filteredProperties.length} properties found`}
+                {`${filteredProperties.length} properties found`}
               </div>
               <div className="flex items-center gap-2">
                 <div className="lg:hidden">
@@ -219,11 +192,7 @@ const PropertyListings: FC<PropertyListingsProps> = () => {
               </div>
             </div>
             
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
-                </div>
-            ) : viewMode === 'list' ? (
+            {viewMode === 'list' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProperties.length > 0 ? (
                   filteredProperties.map((property) => (
