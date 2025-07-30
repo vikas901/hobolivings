@@ -1,18 +1,32 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // By default, deny all reads and writes
-    match /{document=**} {
-      allow read, write: if false;
+    match /users/{userId} {
+      // Allow anyone to read user profiles (e.g., for viewing property owner details)
+      allow read: if true;
+      
+      // Allow a user to create their own profile upon signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow a logged-in user to update only their own profile
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // Disallow deleting user profiles for data integrity
+      allow delete: if false;
     }
 
-    // Allow users to read all profiles, but only create/update their own.
-    match /users/{userId} {
+    match /properties/{propertyId} {
+      // Anyone can read property listings
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // An authenticated 'owner' can create a property
+      allow create: if request.auth != null &&
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.profileType == 'owner' &&
+                      request.resource.data.ownerId == request.auth.uid;
+
+      // The owner of a property can update or delete it
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
     }
   }
 }
