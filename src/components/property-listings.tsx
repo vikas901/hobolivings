@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
-import { allAmenities, allCategories, allCities, properties as dummyProperties } from '@/lib/dummy-data';
+import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
@@ -43,20 +43,9 @@ const PropertyListings: FC = () => {
           ...doc.data(),
         })) as Property[];
         
-        const combinedProperties = [...dummyProperties];
-        const dummyIds = new Set(dummyProperties.map(p => p.id));
-        fetchedProperties.forEach(prop => {
-            // A simple check to avoid duplicates if any real property has same ID as a dummy one.
-            if (!dummyIds.has(prop.id)) {
-                combinedProperties.push(prop);
-            }
-        });
-
-        setAllProperties(combinedProperties);
+        setAllProperties(fetchedProperties);
       } catch (error) {
         console.error("Error fetching properties:", error);
-        // Fallback to dummy data in case of error
-        setAllProperties(dummyProperties);
       } finally {
         setLoading(false);
       }
