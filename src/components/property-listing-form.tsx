@@ -10,22 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
-import { Loader2, Trash2, UploadCloud, X } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { useState, useEffect } from 'react';
-import { Progress } from './ui/progress';
-import Image from 'next/image';
-
-
-const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
+import { useState } from 'react';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
@@ -42,13 +33,11 @@ const formSchema = z.object({
   amenities: z.array(z.string()).min(1, 'Please select at least one amenity.'),
   roomOptions: z.array(roomOptionSchema).min(1, 'Please add at least one room option.'),
   mainImage: z
-    .any()
-    .refine((files) => files?.length == 1, 'Main image is required.')
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 4MB.`)
-    .refine(
-      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      '.jpg, .jpeg, .png and .webp files are accepted.'
-    ),
+    .string()
+    .url({ message: 'Please enter a valid URL.' })
+    .refine((url) => /\.(jpg|jpeg|png|webp)$/i.test(url), {
+      message: 'Image URL must end in .jpg, .jpeg, .png, or .webp',
+    }),
   dataAiHint: z.string().max(25, 'Hint should be a few keywords, max 25 characters.').optional(),
 });
 
@@ -58,7 +47,6 @@ export default function PropertyListingForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +57,7 @@ export default function PropertyListingForm() {
       location: '',
       amenities: [],
       roomOptions: [{ occupancy: 'Single', price: 0 }],
+      mainImage: '',
       dataAiHint: '',
     },
   });
@@ -77,49 +66,6 @@ export default function PropertyListingForm() {
     name: 'roomOptions',
     control: form.control,
   });
-
-  const mainImage = form.watch('mainImage');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (mainImage && mainImage.length > 0) {
-      const file = mainImage[0];
-      if(file instanceof File) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      }
-    } else {
-      setImagePreview(null);
-    }
-  }, [mainImage]);
-
-  const uploadImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `property-images/${Date.now()}_${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error("Upload failed:", error);
-          reject('Image upload failed. Please try again.');
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setUploadProgress(null);
-            resolve(downloadURL);
-          });
-        }
-      );
-    });
-  };
 
   const onSubmit = async (data: PropertyFormValues) => {
     if (!user) {
@@ -134,17 +80,23 @@ export default function PropertyListingForm() {
     setIsSubmitting(true);
     
     try {
-        const imageUrl = await uploadImage(data.mainImage[0]);
-
         const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
         const propertyData = {
-            ...data,
+            title: data.title,
+            description: data.description,
+            city: data.city,
+            location: data.location,
+            category: data.category,
+            type: data.type,
+            amenities: data.amenities,
+            roomOptions: data.roomOptions,
+            dataAiHint: data.dataAiHint || '',
             ownerId: user.uid,
             status: 'approved' as const,
             price: lowestPrice,
-            image: imageUrl,
-            images: [imageUrl],
+            image: data.mainImage,
+            images: [data.mainImage], // Using main image as the only gallery image for now
             rating: 0,
             reviews: 0,
             createdAt: serverTimestamp(),
@@ -155,26 +107,22 @@ export default function PropertyListingForm() {
             }
         };
 
-        const { mainImage, ...firestoreData } = propertyData;
-
-        await addDoc(collection(db, 'properties'), firestoreData);
+        await addDoc(collection(db, 'properties'), propertyData);
 
         toast({
             title: 'Property Listed!',
             description: 'Your property is now live on the platform.',
         });
         form.reset();
-        setImagePreview(null);
     } catch (error) {
         console.error("Error adding document: ", error);
         toast({
             variant: 'destructive',
             title: 'Submission Failed',
-            description: typeof error === 'string' ? error : 'There was an error listing your property. Please try again.',
+            description: 'There was an error listing your property. Please try again.',
         });
     } finally {
         setIsSubmitting(false);
-        setUploadProgress(null);
     }
   };
 
@@ -370,56 +318,24 @@ export default function PropertyListingForm() {
          {/* Photos */}
         <div className="space-y-4 p-6 border rounded-lg">
           <h3 className="text-lg font-medium">6. Photos</h3>
-          <FormField
+           <FormField
             control={form.control}
             name="mainImage"
-            render={({ field: { onChange, value, ...rest } }) => (
-                <FormItem>
-                    <FormLabel>Main Property Image</FormLabel>
-                    <FormControl>
-                        {imagePreview ? (
-                            <div className="relative w-full max-w-sm h-56">
-                                <Image
-                                    src={imagePreview}
-                                    alt="Image Preview"
-                                    layout="fill"
-                                    objectFit="cover"
-                                    className="rounded-md border"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-2 right-2 h-7 w-7"
-                                    onClick={() => form.setValue('mainImage', undefined)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center w-full">
-                                <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-secondary hover:bg-secondary/80">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <UploadCloud className="w-8 h-8 mb-4 text-muted-foreground" />
-                                        <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                        <p className="text-xs text-muted-foreground">PNG, JPG or WEBP (MAX. 4MB)</p>
-                                    </div>
-                                    <Input 
-                                        id="dropzone-file" 
-                                        type="file" 
-                                        className="hidden" 
-                                        accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                                        onChange={(e) => onChange(e.target.files)}
-                                        {...rest}
-                                    />
-                                </label>
-                            </div>
-                        )}
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Main Property Image URL</FormLabel>
+                <FormControl><Input placeholder="https://i.postimg.cc/..." {...field} /></FormControl>
+                <FormDescription>
+                  Upload your image to a free hosting site like{' '}
+                  <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                    postimages.org
+                  </a>{' '}
+                  and paste the "Direct Link" here.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
             )}
-            />
+          />
           <FormField
             control={form.control}
             name="dataAiHint"
@@ -434,15 +350,7 @@ export default function PropertyListingForm() {
           />
         </div>
 
-        {uploadProgress !== null && (
-          <div className="space-y-2">
-            <Label>Uploading Image...</Label>
-            <Progress value={uploadProgress} />
-          </div>
-        )}
-
-
-        <Button type="submit" size="lg" disabled={isSubmitting || uploadProgress !== null}>
+        <Button type="submit" size="lg" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Submitting...' : 'Submit for Review'}
         </Button>
