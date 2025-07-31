@@ -18,7 +18,7 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Label } from '@/components/ui/label';
+import { uploadImage } from '@/ai/flows/image-uploader';
 import { Progress } from '@/components/ui/progress';
 
 const roomOptionSchema = z.object({
@@ -26,7 +26,7 @@ const roomOptionSchema = z.object({
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
 });
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
@@ -41,7 +41,7 @@ const formSchema = z.object({
   mainImage: z
     .any()
     .refine((files) => files?.length == 1, "Main image is required.")
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 1MB.`)
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
       ".jpg, .jpeg, .png and .webp files are accepted."
@@ -60,11 +60,13 @@ const fileToDataUrl = (file: File): Promise<string> => {
     });
 }
 
+
 export default function PropertyListingForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
@@ -96,18 +98,30 @@ export default function PropertyListingForm() {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
     
     try {
         const imageFile = data.mainImage[0];
         const imageDataUrl = await fileToDataUrl(imageFile);
+        
+        // Simulate progress for user feedback
+        setUploadProgress(50);
+        
+        const hostedImageUrl = await uploadImage({ imageDataUrl });
+        
+        if (!hostedImageUrl) {
+            throw new Error('Image upload failed. Please try again.');
+        }
+
+        setUploadProgress(100);
 
         const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
         const propertyData = {
             ...data,
             price: lowestPrice,
-            image: imageDataUrl,
-            images: [imageDataUrl],
+            image: hostedImageUrl, // Use the hosted URL
+            images: [hostedImageUrl],
             ownerId: user.uid,
             status: 'approved' as const,
             rating: 0,
@@ -116,11 +130,8 @@ export default function PropertyListingForm() {
             map: { lat: 0, lng: 0, nearby: [] },
         };
         
-        // This was the bug. The mainImage was being removed, but amenities was not being explicitly carried over
-        // to the final object being saved.
-        const { mainImage, ...restOfData } = propertyData;
-        const finalData = { ...restOfData, amenities: data.amenities };
-
+        const { mainImage, ...finalData } = propertyData;
+        
         await addDoc(collection(db, 'properties'), finalData);
 
         toast({
@@ -139,6 +150,7 @@ export default function PropertyListingForm() {
         });
     } finally {
         setIsSubmitting(false);
+        setUploadProgress(null);
     }
   };
 
@@ -369,7 +381,7 @@ export default function PropertyListingForm() {
                         <div className="text-center">
                           <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
                           <p className="mt-2 text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                          <p className="text-xs text-muted-foreground">PNG, JPG, JPEG, WEBP up to 1MB</p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG, JPEG, WEBP up to 5MB</p>
                         </div>
                       )}
                     </div>
@@ -390,6 +402,12 @@ export default function PropertyListingForm() {
               </FormItem>
             )}
           />
+          {uploadProgress !== null && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Uploading Image...</p>
+              <Progress value={uploadProgress} />
+            </div>
+          )}
         </div>
 
         <Button type="submit" size="lg" disabled={isSubmitting}>
