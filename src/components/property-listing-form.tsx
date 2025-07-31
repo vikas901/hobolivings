@@ -14,11 +14,11 @@ import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { Loader2, Trash2, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useState } from 'react';
 import Image from 'next/image';
-import { uploadImage } from '@/ai/flows/image-uploader';
 import { Progress } from '@/components/ui/progress';
 
 const roomOptionSchema = z.object({
@@ -51,16 +51,6 @@ const formSchema = z.object({
 
 type PropertyFormValues = z.infer<typeof formSchema>;
 
-const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-
 export default function PropertyListingForm() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -87,6 +77,29 @@ export default function PropertyListingForm() {
     control: form.control,
   });
 
+  const uploadImageToStorage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const storageRef = ref(storage, `property-images/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          reject(error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            resolve(downloadURL);
+          });
+        }
+      );
+    });
+  };
+
   const onSubmit = async (data: PropertyFormValues) => {
     if (!user) {
         toast({
@@ -102,23 +115,18 @@ export default function PropertyListingForm() {
     
     try {
         const imageFile = data.mainImage[0];
-        const imageDataUrl = await fileToDataUrl(imageFile);
-        
-        // Simulate progress for user feedback
-        setUploadProgress(50);
-        
-        const hostedImageUrl = await uploadImage({ imageDataUrl });
+        const hostedImageUrl = await uploadImageToStorage(imageFile);
         
         if (!hostedImageUrl) {
             throw new Error('Image upload failed. Please try again.');
         }
 
-        setUploadProgress(100);
-
         const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
+        const { mainImage, ...restOfData } = data;
+
         const propertyData = {
-            ...data,
+            ...restOfData,
             price: lowestPrice,
             image: hostedImageUrl, // Use the hosted URL
             images: [hostedImageUrl],
@@ -130,9 +138,7 @@ export default function PropertyListingForm() {
             map: { lat: 0, lng: 0, nearby: [] },
         };
         
-        const { mainImage, ...finalData } = propertyData;
-        
-        await addDoc(collection(db, 'properties'), finalData);
+        await addDoc(collection(db, 'properties'), propertyData);
 
         toast({
             title: 'Property Listed!',
