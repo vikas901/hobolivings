@@ -18,6 +18,8 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import Image from 'next/image';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
@@ -114,9 +116,12 @@ export default function PropertyListingForm() {
             map: { lat: 0, lng: 0, nearby: [] },
         };
         
+        // This was the bug. The mainImage was being removed, but amenities was not being explicitly carried over
+        // to the final object being saved.
         const { mainImage, ...restOfData } = propertyData;
+        const finalData = { ...restOfData, amenities: data.amenities };
 
-        await addDoc(collection(db, 'properties'), restOfData);
+        await addDoc(collection(db, 'properties'), finalData);
 
         toast({
             title: 'Property Listed!',

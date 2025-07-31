@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, type FC } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
-import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
+import { properties as dummyProperties, allAmenities, allCategories, allCities } from '@/lib/dummy-data';
 import { ListFilter, Map, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
@@ -43,9 +43,15 @@ const PropertyListings: FC = () => {
           ...doc.data(),
         })) as Property[];
         
-        setAllProperties(fetchedProperties);
+        // Temporarily re-add dummy data to ensure the page renders while the form is being fixed
+        const combined = [...dummyProperties, ...fetchedProperties];
+        const uniqueProperties = Array.from(new Map(combined.map(p => [p.id, p])).values());
+        
+        setAllProperties(uniqueProperties);
+
       } catch (error) {
         console.error("Error fetching properties:", error);
+         setAllProperties(dummyProperties);
       } finally {
         setLoading(false);
       }
