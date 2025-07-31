@@ -19,7 +19,7 @@ import { PropertyDetailModal } from './property-detail-modal';
 import { Skeleton } from './ui/skeleton';
 
 const PropertyListings: FC = () => {
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>(dummyProperties);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 25000]);
@@ -29,7 +29,7 @@ const PropertyListings: FC = () => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [heroImageUrl, setHeroImageUrl] = useState('https://placehold.co/1600x600.png');
+  const heroImageUrl = 'https://placehold.co/1600x600.png';
 
 
   useEffect(() => {
