@@ -11,17 +11,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, UploadCloud, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { useState } from 'react';
+import Image from 'next/image';
+import { Progress } from './ui/progress';
+import { Label } from './ui/label';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
 });
+
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters long.'),
@@ -33,11 +40,13 @@ const formSchema = z.object({
   amenities: z.array(z.string()).min(1, 'Please select at least one amenity.'),
   roomOptions: z.array(roomOptionSchema).min(1, 'Please add at least one room option.'),
   mainImage: z
-    .string()
-    .url({ message: 'Please enter a valid URL.' })
-    .refine((url) => /\.(jpg|jpeg|png|webp)$/i.test(url), {
-      message: 'Image URL must end in .jpg, .jpeg, .png, or .webp',
-    }),
+    .any()
+    .refine((files) => files?.length == 1, "Main image is required.")
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 4MB.`)
+    .refine(
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      ".jpg, .jpeg, .png and .webp files are accepted."
+    ),
   dataAiHint: z.string().max(25, 'Hint should be a few keywords, max 25 characters.').optional(),
 });
 
@@ -47,6 +56,9 @@ export default function PropertyListingForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
@@ -57,7 +69,7 @@ export default function PropertyListingForm() {
       location: '',
       amenities: [],
       roomOptions: [{ occupancy: 'Single', price: 0 }],
-      mainImage: '',
+      mainImage: undefined,
       dataAiHint: '',
     },
   });
@@ -80,49 +92,68 @@ export default function PropertyListingForm() {
     setIsSubmitting(true);
     
     try {
-        const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
+      const imageFile = data.mainImage[0];
+      const storageRef = ref(storage, `property-images/${user.uid}-${Date.now()}-${imageFile.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
-        const propertyData = {
-            title: data.title,
-            description: data.description,
-            city: data.city,
-            location: data.location,
-            category: data.category,
-            type: data.type,
-            amenities: data.amenities,
-            roomOptions: data.roomOptions,
-            dataAiHint: data.dataAiHint || '',
-            ownerId: user.uid,
-            status: 'approved' as const,
-            price: lowestPrice,
-            image: data.mainImage,
-            images: [data.mainImage], // Using main image as the only gallery image for now
-            rating: 0,
-            reviews: 0,
-            createdAt: serverTimestamp(),
-            map: { 
-                lat: 0, 
-                lng: 0, 
-                nearby: []
-            }
-        };
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error("Upload failed:", error);
+          toast({
+            variant: 'destructive',
+            title: 'Image Upload Failed',
+            description: 'There was an error uploading your image. Please try again.',
+          });
+          setIsSubmitting(false);
+          setUploadProgress(null);
+        },
+        async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-        await addDoc(collection(db, 'properties'), propertyData);
+            const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
-        toast({
-            title: 'Property Listed!',
-            description: 'Your property is now live on the platform.',
-        });
-        form.reset();
+            const propertyData = {
+                ...data,
+                price: lowestPrice,
+                image: downloadURL,
+                images: [downloadURL],
+                ownerId: user.uid,
+                status: 'approved' as const,
+                rating: 0,
+                reviews: 0,
+                createdAt: serverTimestamp(),
+                map: { lat: 0, lng: 0, nearby: [] },
+                mainImage: undefined, // remove from data
+            };
+            delete propertyData.mainImage;
+
+
+            await addDoc(collection(db, 'properties'), propertyData);
+
+            toast({
+                title: 'Property Listed!',
+                description: 'Your property is now live on the platform.',
+            });
+            form.reset();
+            setImagePreview(null);
+            setIsSubmitting(false);
+            setUploadProgress(null);
+        }
+      );
+
     } catch (error) {
-        console.error("Error adding document: ", error);
+        console.error("Error submitting form: ", error);
         toast({
             variant: 'destructive',
             title: 'Submission Failed',
             description: 'There was an error listing your property. Please try again.',
         });
-    } finally {
         setIsSubmitting(false);
+        setUploadProgress(null);
     }
   };
 
@@ -138,7 +169,7 @@ export default function PropertyListingForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Property Title</FormLabel>
-                <FormControl><Input placeholder="e.g., Cozy Student Hostel near Campus" {...field} /></FormControl>
+                <FormControl><Input placeholder="e.g., Cozy Student Hostel near Campus" {...field} disabled={isSubmitting} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -149,7 +180,7 @@ export default function PropertyListingForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
-                <FormControl><Textarea placeholder="Tell us about your property..." {...field} /></FormControl>
+                <FormControl><Textarea placeholder="Tell us about your property..." {...field} disabled={isSubmitting} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -166,7 +197,7 @@ export default function PropertyListingForm() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>City</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 {allCities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
@@ -182,7 +213,7 @@ export default function PropertyListingForm() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Address / Location</FormLabel>
-                        <FormControl><Input placeholder="e.g., Knowledge Park III" {...field} /></FormControl>
+                        <FormControl><Input placeholder="e.g., Knowledge Park III" {...field} disabled={isSubmitting} /></FormControl>
                         <FormMessage />
                         </FormItem>
                     )}
@@ -200,7 +231,7 @@ export default function PropertyListingForm() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     {allCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
@@ -217,7 +248,7 @@ export default function PropertyListingForm() {
                         <FormItem className="space-y-3">
                         <FormLabel>Property Type</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4" disabled={isSubmitting}>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="Boys" /></FormControl><FormLabel className="font-normal">Boys</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="Girls" /></FormControl><FormLabel className="font-normal">Girls</FormLabel></FormItem>
                                 <FormItem className="flex items-center space-x-2"><FormControl><RadioGroupItem value="Co-ed" /></FormControl><FormLabel className="font-normal">Co-ed</FormLabel></FormItem>
@@ -234,7 +265,7 @@ export default function PropertyListingForm() {
         <div className="space-y-4 p-6 border rounded-lg">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium">4. Room Options & Pricing</h3>
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ occupancy: 'Single', price: 0 })}>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ occupancy: 'Single', price: 0 })} disabled={isSubmitting}>
                     Add Room Option
                 </Button>
             </div>
@@ -246,7 +277,7 @@ export default function PropertyListingForm() {
                     render={({ field }) => (
                     <FormItem className="flex-1">
                         <FormLabel>Occupancy</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select Occupancy" /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="Single">Single</SelectItem>
@@ -264,12 +295,12 @@ export default function PropertyListingForm() {
                     render={({ field }) => (
                     <FormItem className="flex-1">
                         <FormLabel>Price (per month)</FormLabel>
-                        <FormControl><Input type="number" placeholder="e.g., 8000" {...field} /></FormControl>
+                        <FormControl><Input type="number" placeholder="e.g., 8000" {...field} disabled={isSubmitting} /></FormControl>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
+                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1 || isSubmitting}>
                     <Trash2 />
                 </Button>
             </div>
@@ -297,10 +328,11 @@ export default function PropertyListingForm() {
                                 <Checkbox
                                     checked={field.value?.includes(item)}
                                     onCheckedChange={(checked) => {
-                                    return checked
-                                        ? field.onChange([...field.value, item])
-                                        : field.onChange(field.value?.filter((value) => value !== item));
+                                      return checked
+                                          ? field.onChange([...field.value, item])
+                                          : field.onChange(field.value?.filter((value) => value !== item));
                                     }}
+                                    disabled={isSubmitting}
                                 />
                                 </FormControl>
                                 <FormLabel className="font-normal">{item}</FormLabel>
@@ -319,30 +351,61 @@ export default function PropertyListingForm() {
         <div className="space-y-4 p-6 border rounded-lg">
           <h3 className="text-lg font-medium">6. Photos</h3>
            <FormField
-            control={form.control}
-            name="mainImage"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Main Property Image URL</FormLabel>
-                <FormControl><Input placeholder="https://i.postimg.cc/..." {...field} /></FormControl>
-                <FormDescription>
-                  Upload your image to a free hosting site like{' '}
-                  <a href="https://postimages.org/" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                    postimages.org
-                  </a>{' '}
-                  and paste the "Direct Link" here.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
+              control={form.control}
+              name="mainImage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Main Property Image</FormLabel>
+                  <FormControl>
+                    <div className="relative flex justify-center items-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors">
+                      <Input
+                        type="file"
+                        className="absolute w-full h-full opacity-0 cursor-pointer"
+                        accept="image/png, image/jpeg, image/webp"
+                        {...form.register('mainImage')}
+                        onChange={(event) => {
+                          field.onChange(event.target.files);
+                          if (event.target.files && event.target.files[0]) {
+                            const file = event.target.files[0];
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setImagePreview(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          } else {
+                            setImagePreview(null);
+                          }
+                        }}
+                        disabled={isSubmitting}
+                      />
+                      {imagePreview ? (
+                        <Image src={imagePreview} alt="Selected image preview" layout="fill" objectFit="contain" className="rounded-lg" />
+                      ) : (
+                        <div className="text-center">
+                          <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
+                          <p className="mt-2 text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG, JPEG, WEBP up to 4MB</p>
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             {uploadProgress !== null && (
+              <div className="space-y-2">
+                <Label>Uploading Image...</Label>
+                <Progress value={uploadProgress} />
+              </div>
             )}
-          />
           <FormField
             control={form.control}
             name="dataAiHint"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Image Keywords (for AI)</FormLabel>
-                <FormControl><Input placeholder="e.g., modern hostel" {...field} /></FormControl>
+                <FormControl><Input placeholder="e.g., modern hostel" {...field} disabled={isSubmitting} /></FormControl>
                 <FormDescription>Help our AI find better images later by providing one or two keywords.</FormDescription>
                 <FormMessage />
               </FormItem>
