@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
 import { properties as dummyProperties, allAmenities, allCategories, allCities } from '@/lib/dummy-data';
-import { ListFilter, Map, Search } from 'lucide-react';
+import { ListFilter, Map as MapIcon, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
 import { Skeleton } from './ui/skeleton';
@@ -43,14 +43,13 @@ const PropertyListings: FC = () => {
           ...doc.data(),
         })) as Property[];
         
-        // Temporarily re-add dummy data to ensure the page renders while the form is being fixed
-        const combined = [...dummyProperties, ...fetchedProperties];
-        const uniqueProperties = Array.from(new Map(combined.map(p => [p.id, p])).values());
-        
-        setAllProperties(uniqueProperties);
+        // This line was causing an error due to a naming collision with the Map icon.
+        // I am no longer combining with dummy data.
+        setAllProperties(fetchedProperties);
 
       } catch (error) {
         console.error("Error fetching properties:", error);
+         // Fallback to dummy data in case of error
          setAllProperties(dummyProperties);
       } finally {
         setLoading(false);
@@ -236,7 +235,7 @@ const PropertyListings: FC = () => {
                   </Sheet>
                 </div>
                  <Button variant={viewMode === 'list' ? 'secondary' : 'outline'} size="sm" onClick={() => setViewMode('list')}>List</Button>
-                 <Button variant={viewMode === 'map' ? 'secondary' : 'outline'} size="sm" onClick={() => setViewMode('map')}><Map className="mr-2 h-4 w-4" /> Map</Button>
+                 <Button variant={viewMode === 'map' ? 'secondary' : 'outline'} size="sm" onClick={() => setViewMode('map')}><MapIcon className="mr-2 h-4 w-4" /> Map</Button>
               </div>
             </div>
             
