@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: 'hobo-livings',
@@ -16,25 +16,11 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-const db = getFirestore(app);
 
-
-// This is an async call, but we don't need to wait for it to complete.
-// Firestore will start queuing up operations and will sync once persistence is enabled.
-enableIndexedDbPersistence(db)
-  .catch((err) => {
-    if (err.code == 'failed-precondition') {
-      // Multiple tabs open, persistence can only be enabled
-      // in one tab at a a time.
-      // ...
-      console.error("Firestore persistence failed: failed-precondition. Multiple tabs open?");
-    } else if (err.code == 'unimplemented') {
-      // The current browser does not support all of the
-      // features required to enable persistence
-      // ...
-      console.error("Firestore persistence failed: unimplemented. Browser not supported?");
-    }
-  });
+// Initialize Firestore with persistent caching
+const db = initializeFirestore(app, {
+  cache: persistentLocalCache({}),
+});
 
 
 export { db };

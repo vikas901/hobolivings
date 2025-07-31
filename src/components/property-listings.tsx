@@ -19,7 +19,7 @@ import { PropertyDetailModal } from './property-detail-modal';
 import { Skeleton } from './ui/skeleton';
 
 const PropertyListings: FC = () => {
-  const [allProperties, setAllProperties] = useState<Property[]>(dummyProperties);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 25000]);
@@ -29,7 +29,7 @@ const PropertyListings: FC = () => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const heroImageUrl = 'https://i.postimg.cc/Bv9yJ2G6/hero-banner.png';
+  const heroImageUrl = 'https://placehold.co/1600x600.png';
 
 
   useEffect(() => {
@@ -46,6 +46,7 @@ const PropertyListings: FC = () => {
         const combinedProperties = [...dummyProperties];
         const dummyIds = new Set(dummyProperties.map(p => p.id));
         fetchedProperties.forEach(prop => {
+            // A simple check to avoid duplicates if any real property has same ID as a dummy one.
             if (!dummyIds.has(prop.id)) {
                 combinedProperties.push(prop);
             }
@@ -54,6 +55,7 @@ const PropertyListings: FC = () => {
         setAllProperties(combinedProperties);
       } catch (error) {
         console.error("Error fetching properties:", error);
+        // Fallback to dummy data in case of error
         setAllProperties(dummyProperties);
       } finally {
         setLoading(false);
