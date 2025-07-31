@@ -61,6 +61,7 @@ export default function Header() {
             width={140}
             height={40}
             priority
+            style={{ height: 'auto' }}
           />
         </Link>
         <div className="flex-1"></div>

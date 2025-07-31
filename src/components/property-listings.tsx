@@ -29,7 +29,7 @@ const PropertyListings: FC = () => {
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const heroImageUrl = 'https://placehold.co/1600x600.png';
+  const heroImageUrl = 'https://i.postimg.cc/Bv9yJ2G6/hero-banner.png';
 
 
   useEffect(() => {
@@ -43,7 +43,6 @@ const PropertyListings: FC = () => {
           ...doc.data(),
         })) as Property[];
         
-        // Combine fetched properties with dummy properties, avoiding duplicates
         const combinedProperties = [...dummyProperties];
         const dummyIds = new Set(dummyProperties.map(p => p.id));
         fetchedProperties.forEach(prop => {
@@ -55,7 +54,7 @@ const PropertyListings: FC = () => {
         setAllProperties(combinedProperties);
       } catch (error) {
         console.error("Error fetching properties:", error);
-        setAllProperties(dummyProperties); // Fallback to dummy data on error
+        setAllProperties(dummyProperties);
       } finally {
         setLoading(false);
       }

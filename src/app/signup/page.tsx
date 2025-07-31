@@ -11,7 +11,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-secondary">
       <div className="text-center max-w-lg mx-4">
         <Link href="/" className="mb-8 inline-block">
-          <Image src={logo} alt="Hobo Livings Logo" width={180} height={50} priority />
+          <Image src={logo} alt="Hobo Livings Logo" width={180} height={50} priority style={{ height: 'auto' }} />
         </Link>
         <Card>
           <CardHeader>
