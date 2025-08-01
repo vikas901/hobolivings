@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
-import { properties as dummyProperties, allAmenities, allCategories, allCities } from '@/lib/dummy-data';
+import { allAmenities, allCategories } from '@/lib/dummy-data';
 import { ListFilter, Map as MapIcon, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
@@ -43,14 +43,11 @@ const PropertyListings: FC = () => {
           ...doc.data(),
         })) as Property[];
         
-        // This line was causing an error due to a naming collision with the Map icon.
-        // I am no longer combining with dummy data.
         setAllProperties(fetchedProperties);
 
       } catch (error) {
         console.error("Error fetching properties:", error);
-         // Fallback to dummy data in case of error
-         setAllProperties(dummyProperties);
+         setAllProperties([]);
       } finally {
         setLoading(false);
       }
@@ -71,7 +68,7 @@ const PropertyListings: FC = () => {
       const matchesCategory =
         selectedCategories.length === 0 || selectedCategories.includes(property.category);
       const matchesAmenities = selectedAmenities.every((amenity) =>
-        property.amenities.includes(amenity)
+        property.amenities?.includes(amenity)
       );
       return (
         matchesSearch && matchesPrice && matchesCity && matchesType && matchesCategory && matchesAmenities
@@ -86,6 +83,11 @@ const PropertyListings: FC = () => {
     selectedAmenities,
     allProperties
   ]);
+
+  const uniqueCities = useMemo(() => {
+    const cities = new Set(allProperties.map(p => p.city));
+    return Array.from(cities);
+  }, [allProperties]);
 
   const handleCategoryChange = (category: PropertyCategory) => {
     setSelectedCategories((prev) =>
@@ -117,7 +119,7 @@ const PropertyListings: FC = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Cities</SelectItem>
-            {allCities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
+            {uniqueCities.map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
