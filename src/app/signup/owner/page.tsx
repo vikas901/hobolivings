@@ -173,8 +173,8 @@ export default function OwnerSignupPage() {
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="underline font-semibold text-primary">
-              Login
+            <Link href="/login?role=owner" className="underline font-semibold text-primary">
+              Login as Owner
             </Link>
           </div>
         </CardContent>
