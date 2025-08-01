@@ -1,15 +1,20 @@
+'use client';
+
 import type { Property } from '@/lib/types';
 import { PropertyFilters } from './property-filters';
 import Image from 'next/image';
 import heroImage from '@/assets/hero-image.png';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useState } from 'react';
 
 interface PropertyListingsProps {
   properties: Property[];
 }
 
 export default function PropertyListings({ properties }: PropertyListingsProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  
   return (
     <>
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center">
@@ -32,12 +37,14 @@ export default function PropertyListings({ properties }: PropertyListingsProps) 
                 type="text"
                 placeholder="Search by city, location, or landmark..."
                 className="w-full h-11 pl-10 pr-4 text-base rounded-full shadow-lg text-foreground"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
         </div>
       </section>
       
-      <PropertyFilters properties={properties} />
+      <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
     </>
   );
 };

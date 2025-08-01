@@ -17,10 +17,11 @@ import { PropertyDetailModal } from './property-detail-modal';
 
 interface PropertyFiltersProps {
   properties: Property[];
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
 
-export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTerm, setSearchTerm }) => {
   const [priceRange, setPriceRange] = useState([0, 25000]);
   const [maxPrice, setMaxPrice] = useState(25000);
   const [selectedCity, setSelectedCity] = useState('all');
