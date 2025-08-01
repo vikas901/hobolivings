@@ -1,7 +1,7 @@
+
 'use client';
 
 import { useState, useMemo, type FC } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
 import { allAmenities, allCategories } from '@/lib/dummy-data';
-import { ListFilter, Map as MapIcon, Search } from 'lucide-react';
+import { ListFilter, Map as MapIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
 
@@ -167,16 +167,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties }) => {
 
           <div className="lg:col-span-3">
             <div className="flex justify-between items-center mb-4">
-              <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search by city, location, or landmark..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-11 pl-10 pr-4 text-base rounded-full shadow-sm"
-                />
-              </div>
+              
               <div className="flex items-center gap-2">
                 <div className="lg:hidden">
                   <Sheet>

@@ -2,7 +2,9 @@
 import type { Property } from '@/lib/types';
 import { PropertyFilters } from './property-filters';
 import Image from 'next/image';
-import heroImage from '@/assets/hero-image.png.png';
+import heroImage from '@/assets/hero-image.png';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 interface PropertyListingsProps {
   properties: Property[];
@@ -25,6 +27,14 @@ export default function PropertyListings({ properties }: PropertyListingsProps) 
         <div className="relative z-10 container text-white px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold">Find Your Student Haven</h1>
           <p className="mt-4 text-lg md:text-xl max-w-3xl mx-auto">The best student hostels, PGs, and rooms in Delhi NCR. Your search ends here.</p>
+           <div className="relative w-full max-w-sm mx-auto mt-8">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by city, location, or landmark..."
+                className="w-full h-11 pl-10 pr-4 text-base rounded-full shadow-lg text-foreground"
+              />
+            </div>
         </div>
       </section>
       
