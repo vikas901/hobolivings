@@ -11,23 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { allAmenities, allCategories, allCities } from '@/lib/dummy-data';
-import { Loader2, Trash2, UploadCloud } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Progress } from '@/components/ui/progress';
+import { CloudinaryUploadWidget } from '@/components/cloudinary-upload-widget';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
   price: z.coerce.number().min(1, 'Price must be greater than 0'),
 });
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters long.'),
@@ -38,14 +34,7 @@ const formSchema = z.object({
   type: z.enum(['Boys', 'Girls', 'Co-ed'], { required_error: 'Please select a property type.' }),
   amenities: z.array(z.string()).min(1, 'Please select at least one amenity.'),
   roomOptions: z.array(roomOptionSchema).min(1, 'Please add at least one room option.'),
-  mainImage: z
-    .any()
-    .refine((files) => files?.length == 1, "Main image is required.")
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-    .refine(
-      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      ".jpg, .jpeg, .png and .webp files are accepted."
-    ),
+  imageUrl: z.string().url("A valid image URL is required."),
   dataAiHint: z.string().max(25, 'Hint should be a few keywords, max 25 characters.').optional(),
 });
 
@@ -55,8 +44,7 @@ export default function PropertyListingForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
@@ -67,7 +55,7 @@ export default function PropertyListingForm() {
       location: '',
       amenities: [],
       roomOptions: [{ occupancy: 'Single', price: 0 }],
-      mainImage: undefined,
+      imageUrl: '',
       dataAiHint: '',
     },
   });
@@ -77,27 +65,10 @@ export default function PropertyListingForm() {
     control: form.control,
   });
 
-  const uploadImageToStorage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const storageRef = ref(storage, `property-images/${Date.now()}-${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setUploadProgress(progress);
-        },
-        (error) => {
-          console.error("Upload failed:", error);
-          reject(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            resolve(downloadURL);
-          });
-        }
-      );
-    });
+  const handleUploadSuccess = (url: string) => {
+    setImageUrl(url);
+    form.setValue('imageUrl', url);
+    form.clearErrors('imageUrl');
   };
 
   const onSubmit = async (data: PropertyFormValues) => {
@@ -111,25 +82,15 @@ export default function PropertyListingForm() {
     }
 
     setIsSubmitting(true);
-    setUploadProgress(0);
     
     try {
-        const imageFile = data.mainImage[0];
-        const hostedImageUrl = await uploadImageToStorage(imageFile);
-        
-        if (!hostedImageUrl) {
-            throw new Error('Image upload failed. Please try again.');
-        }
-
         const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
-        const { mainImage, ...restOfData } = data;
-
         const propertyData = {
-            ...restOfData,
+            ...data,
             price: lowestPrice,
-            image: hostedImageUrl, // Use the hosted URL
-            images: [hostedImageUrl],
+            image: data.imageUrl,
+            images: [data.imageUrl],
             ownerId: user.uid,
             status: 'approved' as const,
             rating: 0,
@@ -145,7 +106,7 @@ export default function PropertyListingForm() {
             description: 'Your property is now live on the platform.',
         });
         form.reset();
-        setImagePreview(null);
+        setImageUrl(null);
 
     } catch (error) {
         console.error("Error submitting form: ", error);
@@ -156,7 +117,6 @@ export default function PropertyListingForm() {
         });
     } finally {
         setIsSubmitting(false);
-        setUploadProgress(null);
     }
   };
 
@@ -355,41 +315,18 @@ export default function PropertyListingForm() {
           <h3 className="text-lg font-medium">6. Photos</h3>
            <FormField
               control={form.control}
-              name="mainImage"
+              name="imageUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Main Property Image</FormLabel>
                   <FormControl>
-                    <div className="relative flex justify-center items-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary transition-colors">
-                      <Input
-                        type="file"
-                        className="absolute w-full h-full opacity-0 cursor-pointer"
-                        accept="image/png, image/jpeg, image/webp"
-                        {...form.register('mainImage')}
-                        onChange={(event) => {
-                          field.onChange(event.target.files);
-                          if (event.target.files && event.target.files[0]) {
-                            const file = event.target.files[0];
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setImagePreview(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          } else {
-                            setImagePreview(null);
-                          }
-                        }}
-                        disabled={isSubmitting}
-                      />
-                      {imagePreview ? (
-                        <Image src={imagePreview} alt="Selected image preview" layout="fill" objectFit="contain" className="rounded-lg" />
-                      ) : (
-                        <div className="text-center">
-                          <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
-                          <p className="mt-2 text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                          <p className="text-xs text-muted-foreground">PNG, JPG, JPEG, WEBP up to 5MB</p>
-                        </div>
-                      )}
+                    <div className="w-full">
+                       <CloudinaryUploadWidget onUploadSuccess={handleUploadSuccess} />
+                       {imageUrl && (
+                          <div className="mt-4 relative w-full h-64">
+                             <Image src={imageUrl} alt="Uploaded image preview" layout="fill" objectFit="contain" className="rounded-lg border" />
+                          </div>
+                       )}
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -408,12 +345,6 @@ export default function PropertyListingForm() {
               </FormItem>
             )}
           />
-          {uploadProgress !== null && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Uploading Image...</p>
-              <Progress value={uploadProgress} />
-            </div>
-          )}
         </div>
 
         <Button type="submit" size="lg" disabled={isSubmitting}>
