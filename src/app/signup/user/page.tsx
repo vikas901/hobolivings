@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -98,7 +99,7 @@ export default function UserSignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                <span className="font-bold text-2xl font-headline text-primary">Hobo Livings</span>
+                <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
             </Link>
             <CardTitle className="font-headline text-2xl">Create Your Account</CardTitle>
             <CardDescription>Find your next home with us.</CardDescription>

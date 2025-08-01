@@ -1,6 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -53,7 +55,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <span className="font-bold text-xl font-headline text-primary">Hobo Livings</span>
+           <Image src="/logo.png" alt="Hobo Livings Logo" width={120} height={35} />
         </Link>
         <div className="flex-1"></div>
         <nav className="flex items-center space-x-2 sm:space-x-4">

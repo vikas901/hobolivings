@@ -3,6 +3,7 @@
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -99,7 +100,7 @@ function LoginContent() {
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                 <span className="font-bold text-2xl font-headline text-primary">Hobo Livings</span>
+                 <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
             </Link>
           <CardTitle className="text-2xl font-headline">{loginTitle}</CardTitle>
           <CardDescription>{loginDescription}</CardDescription>
