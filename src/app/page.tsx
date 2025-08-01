@@ -21,10 +21,16 @@ export default async function Home() {
           ? data.images[0] 
           : 'https://placehold.co/600x400.png';
 
-        // Convert Firestore Timestamp to a number (milliseconds) for safe serialization
-        const createdAt = data.createdAt instanceof Timestamp 
-          ? data.createdAt.toMillis() 
-          : (data.createdAt || Date.now());
+        // Safely handle the createdAt timestamp
+        let createdAt: number;
+        if (data.createdAt && data.createdAt instanceof Timestamp) {
+            createdAt = data.createdAt.toMillis();
+        } else if (typeof data.createdAt === 'number') {
+            createdAt = data.createdAt;
+        } else {
+            createdAt = Date.now();
+        }
+
 
         return {
             id: doc.id,
