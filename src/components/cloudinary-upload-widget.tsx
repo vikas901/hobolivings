@@ -1,7 +1,6 @@
-// @ts-nocheck
 'use client';
 
-import { useEffect, type FC } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 import { Button } from './ui/button';
 import { UploadCloud } from 'lucide-react';
 
@@ -9,54 +8,51 @@ interface CloudinaryUploadWidgetProps {
   onUploadSuccess: (url: string) => void;
 }
 
+// Extend the Window interface to include the cloudinary object
+declare global {
+  interface Window {
+    cloudinary: any;
+  }
+}
+
 export const CloudinaryUploadWidget: FC<CloudinaryUploadWidgetProps> = ({ onUploadSuccess }) => {
+  const cloudinaryRef = useRef<any>(null);
+  const widgetRef = useRef<any>(null);
+
   useEffect(() => {
-    // This check is necessary to ensure the script is loaded before creating the widget
-    if (!window.cloudinary) {
-      console.error('Cloudinary script not loaded');
-      return;
+    // Store the cloudinary instance in a ref
+    cloudinaryRef.current = window.cloudinary;
+    
+    // Only create the widget once
+    if (cloudinaryRef.current) {
+        widgetRef.current = cloudinaryRef.current.createUploadWidget(
+        {
+          cloudName: "dbf1vsz6g",
+          uploadPreset: "hobo_livings_preset",
+        },
+        (error: any, result: any) => {
+          if (!error && result && result.event === "success") {
+            onUploadSuccess(result.info.secure_url);
+          }
+          if (error) {
+            console.error('Cloudinary Upload Error:', error);
+          }
+        }
+      );
     }
 
-    const cloudName = "dbf1vsz6g"; // From your Cloudinary dashboard
-    const uploadPreset = "hobo_livings_preset"; // The *unsigned* preset you created
-
-    const myWidget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: cloudName,
-        uploadPreset: uploadPreset,
-      },
-      (error, result) => {
-        if (!error && result && result.event === "success") {
-          console.log("Image uploaded successfully:", result.info.secure_url);
-          onUploadSuccess(result.info.secure_url);
-        }
-        if (error) {
-          console.error('Cloudinary Upload Error:', error);
-        }
-      }
-    );
-
-    const handleClick = (e: MouseEvent) => {
-      e.preventDefault(); // Prevent form submission
-      myWidget.open();
-    };
-    
-    const uploadButton = document.getElementById("upload_widget_button");
-    if (uploadButton) {
-        uploadButton.addEventListener("click", handleClick);
-    }
-    
-    // Cleanup function to remove event listener
-    return () => {
-        if (uploadButton) {
-            uploadButton.removeEventListener('click', handleClick);
-        }
-    };
   }, [onUploadSuccess]);
 
+  const handleUploadClick = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    if (widgetRef.current) {
+      widgetRef.current.open();
+    }
+  };
+
   return (
-    <Button id="upload_widget_button" variant="outline" className="w-full">
-      <UploadCloud className="mr-2" />
+    <Button onClick={handleUploadClick} variant="outline" className="w-full">
+      <UploadCloud className="mr-2 h-4 w-4" />
       Upload an Image
     </Button>
   );
