@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "region": "asia-east1"
+  },
   "hosting": {
     "source": ".",
     "ignore": [
