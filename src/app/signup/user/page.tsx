@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Rocket } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import logo from '@/assets/logo.png';
 
 export default function UserSignupPage() {
   const [formData, setFormData] = useState({
@@ -99,7 +100,7 @@ export default function UserSignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
+                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
             </Link>
             <CardTitle className="font-headline text-2xl">Create Your Account</CardTitle>
             <CardDescription>Find your next home with us.</CardDescription>

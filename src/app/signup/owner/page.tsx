@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Rocket } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import logo from '@/assets/logo.png';
 
 export default function OwnerSignupPage() {
   const [formData, setFormData] = useState({
@@ -111,7 +112,7 @@ export default function OwnerSignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
+                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
             </Link>
             <CardTitle className="font-headline text-2xl">Create an Owner Account</CardTitle>
             <CardDescription>Start listing your properties today.</CardDescription>

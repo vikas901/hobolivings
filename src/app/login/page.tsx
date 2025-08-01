@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
+import logo from '@/assets/logo.png';
 
 function LoginContent() {
   const [email, setEmail] = useState('');
@@ -100,7 +101,7 @@ function LoginContent() {
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                 <Image src="/logo.png" alt="Hobo Livings Logo" width={140} height={40} />
+                 <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
             </Link>
           <CardTitle className="text-2xl font-headline">{loginTitle}</CardTitle>
           <CardDescription>{loginDescription}</CardDescription>

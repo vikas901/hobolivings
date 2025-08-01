@@ -1,16 +1,18 @@
 
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Home, User } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 export default function SignupPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-secondary">
       <div className="text-center max-w-lg mx-4">
         <Link href="/" className="mb-8 inline-block">
-            <Image src="/logo.png" alt="Hobo Livings Logo" width={180} height={50} />
+            <Image src={logo} alt="Hobo Livings Logo" width={180} height={50} />
         </Link>
         <Card>
           <CardHeader>
