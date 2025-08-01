@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
@@ -9,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 import PropertyListingForm from '@/components/property-listing-form';
+import { useRouter } from 'next/navigation';
 
 export default function ListYourPropertyPage() {
   const { user, userProfile, loading } = useAuth();
+  const router = useRouter();
 
   const renderContent = () => {
     if (loading) {
@@ -33,12 +34,8 @@ export default function ListYourPropertyPage() {
             You need to be logged in as a property owner to list a property.
           </p>
           <div className="mt-6 flex justify-center gap-4">
-            <Button asChild>
-              <Link href="/login?role=owner">Login</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/signup/owner">Create an Owner Account</Link>
-            </Button>
+            <Button onClick={() => router.push('/login?role=owner')}>Login</Button>
+            <Button variant="outline" onClick={() => router.push('/signup/owner')}>Create an Owner Account</Button>
           </div>
         </CardContent>
       );
@@ -56,9 +53,7 @@ export default function ListYourPropertyPage() {
              Please log out and create a new owner account to continue.
           </p>
           <div className="mt-6">
-            <Button asChild>
-                <Link href="/signup/owner">Create an Owner Account</Link>
-            </Button>
+            <Button onClick={() => router.push('/signup/owner')}>Create an Owner Account</Button>
           </div>
         </CardContent>
       );
