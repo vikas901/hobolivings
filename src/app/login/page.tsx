@@ -1,7 +1,9 @@
 
 'use client';
 
-import { useState, Suspense } from 'react';
+import { Suspense } from 'react';
+import type { Metadata } from 'next';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,6 +19,11 @@ import { Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
 import logo from '@/assets/logo.png';
 
+export const metadata: Metadata = {
+  title: 'Login - Hobo Livings',
+  description: 'Log in to your Hobo Livings account to manage your properties or find your next home.',
+};
+
 function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,11 +37,9 @@ function LoginContent() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Step 1: Authenticate the user with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Step 2: Fetch user profile from Firestore to check their role
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
@@ -44,13 +49,11 @@ function LoginContent() {
 
       const userProfile = userDoc.data() as UserProfile;
 
-      // Step 3: Enforce role-based login paths
       const isOwnerLoginFlow = role === 'owner';
       const isOwnerProfile = userProfile.profileType === 'owner';
 
       if (isOwnerProfile && !isOwnerLoginFlow) {
-         // Prevent owner from logging in via student/general flow
-        await auth.signOut(); // Log the user out immediately
+        await auth.signOut();
         toast({
           variant: 'destructive',
           title: 'Login Path Restricted',
@@ -61,7 +64,6 @@ function LoginContent() {
       }
       
       if (!isOwnerProfile && isOwnerLoginFlow) {
-         // Prevent student from logging in via owner flow
         await auth.signOut();
         toast({
           variant: 'destructive',
@@ -72,7 +74,6 @@ function LoginContent() {
         return;
       }
 
-      // Step 4: Redirect to the correct dashboard
       toast({ title: 'Success', description: 'Logged in successfully!' });
       if (isOwnerLoginFlow) {
         router.push('/list-your-property');

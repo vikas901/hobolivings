@@ -1,6 +1,7 @@
 
 'use client';
 
+import type { Metadata } from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,8 +18,14 @@ import { Loader2, Rocket } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import logo from '@/assets/logo.png';
 
-export default function UserSignupPage() {
-  const [formData, setFormData] = useState({
+export const metadata: Metadata = {
+  title: 'User Signup - Hobo Livings',
+  description: 'Create an account on Hobo Livings to find the best student hostels, PGs, and rooms.',
+};
+
+
+function UserSignupForm() {
+    const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
@@ -96,8 +103,7 @@ export default function UserSignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-md">
+     <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
                 <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
@@ -159,6 +165,13 @@ export default function UserSignupPage() {
           </div>
         </CardContent>
       </Card>
+  )
+}
+
+export default function UserSignupPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
+      <UserSignupForm />
     </div>
   );
 }

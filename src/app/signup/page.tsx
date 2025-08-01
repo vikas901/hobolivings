@@ -1,11 +1,17 @@
 
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Home, User } from 'lucide-react';
 import logo from '@/assets/logo.png';
+
+export const metadata: Metadata = {
+  title: 'Sign Up - Hobo Livings',
+  description: 'Join Hobo Livings. Create an account as a student to find a property or as an owner to list a property.',
+};
 
 export default function SignupPage() {
   return (

@@ -34,7 +34,7 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
         <Badge className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground">{property.type}</Badge>
         <Image
           src={property.image}
-          alt={property.title}
+          alt={`Exterior view of ${property.title}`}
           width={600}
           height={400}
           className="w-full h-48 object-cover"

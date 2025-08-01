@@ -1,6 +1,7 @@
 
 'use client';
 
+import type { Metadata } from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,7 +19,12 @@ import { Loader2, Rocket } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import logo from '@/assets/logo.png';
 
-export default function OwnerSignupPage() {
+export const metadata: Metadata = {
+  title: 'Owner Signup - Hobo Livings',
+  description: 'Create a property owner account on Hobo Livings to start listing your hostels, PGs, or rooms.',
+};
+
+function OwnerSignupForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -108,77 +114,83 @@ export default function OwnerSignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-            <Link href="/" className="flex justify-center mb-4">
-                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
-            </Link>
-            <CardTitle className="font-headline text-2xl">Create an Owner Account</CardTitle>
-            <CardDescription>Start listing your properties today.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full Name / Company Name</Label>
-              <Input id="name" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} disabled={loading} className={errors.name ? 'border-destructive' : ''} />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            </div>
-             <div className="grid gap-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" value={formData.email} onChange={(e) => updateFormData('email', e.target.value)} disabled={loading} className={errors.email ? 'border-destructive' : ''} />
-              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" value={formData.phone} onChange={(e) => updateFormData('phone', e.target.value)} disabled={loading} className={errors.phone ? 'border-destructive' : ''} />
-                {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
-            </div>
-             <div className="grid gap-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea id="address" value={formData.address} onChange={(e) => updateFormData('address', e.target.value)} disabled={loading} className={errors.address ? 'border-destructive' : ''} />
-                {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
-            </div>
-            <div>
-              <Label className="font-semibold">Account Type</Label>
-              <RadioGroup 
-                value={formData.companyType} 
-                onValueChange={(value) => updateFormData('companyType', value)}
-                className="flex gap-4 pt-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="individual" id="type-individual" />
-                  <Label htmlFor="type-individual">Individual</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="company" id="type-company" />
-                  <Label htmlFor="type-company">Company</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={formData.password} onChange={(e) => updateFormData('password', e.target.value)} disabled={loading} className={errors.password ? 'border-destructive' : ''} />
-              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input id="confirm-password" type="password" value={formData.confirmPassword} onChange={(e) => updateFormData('confirmPassword', e.target.value)} disabled={loading} className={errors.confirmPassword ? 'border-destructive' : ''} />
-              {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
-              {loading ? 'Creating Account...' : 'Create Account & Continue'}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link href="/login?role=owner" className="underline font-semibold text-primary">
-              Login as Owner
-            </Link>
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+          <Link href="/" className="flex justify-center mb-4">
+              <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} />
+          </Link>
+          <CardTitle className="font-headline text-2xl">Create an Owner Account</CardTitle>
+          <CardDescription>Start listing your properties today.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Full Name / Company Name</Label>
+            <Input id="name" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} disabled={loading} className={errors.name ? 'border-destructive' : ''} />
+            {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
-        </CardContent>
-      </Card>
+           <div className="grid gap-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input id="email" type="email" value={formData.email} onChange={(e) => updateFormData('email', e.target.value)} disabled={loading} className={errors.email ? 'border-destructive' : ''} />
+            {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+          </div>
+          <div className="grid gap-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" type="tel" value={formData.phone} onChange={(e) => updateFormData('phone', e.target.value)} disabled={loading} className={errors.phone ? 'border-destructive' : ''} />
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+          </div>
+           <div className="grid gap-2">
+              <Label htmlFor="address">Address</Label>
+              <Textarea id="address" value={formData.address} onChange={(e) => updateFormData('address', e.target.value)} disabled={loading} className={errors.address ? 'border-destructive' : ''} />
+              {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
+          </div>
+          <div>
+            <Label className="font-semibold">Account Type</Label>
+            <RadioGroup 
+              value={formData.companyType} 
+              onValueChange={(value) => updateFormData('companyType', value)}
+              className="flex gap-4 pt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="individual" id="type-individual" />
+                <Label htmlFor="type-individual">Individual</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="company" id="type-company" />
+                <Label htmlFor="type-company">Company</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" value={formData.password} onChange={(e) => updateFormData('password', e.target.value)} disabled={loading} className={errors.password ? 'border-destructive' : ''} />
+            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input id="confirm-password" type="password" value={formData.confirmPassword} onChange={(e) => updateFormData('confirmPassword', e.target.value)} disabled={loading} className={errors.confirmPassword ? 'border-destructive' : ''} />
+            {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
+            {loading ? 'Creating Account...' : 'Create Account & Continue'}
+          </Button>
+        </form>
+        <div className="mt-4 text-center text-sm">
+          Already have an account?{' '}
+          <Link href="/login?role=owner" className="underline font-semibold text-primary">
+            Login as Owner
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function OwnerSignupPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
+      <OwnerSignupForm />
     </div>
   );
 }
