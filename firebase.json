@@ -1,7 +1,8 @@
 {
   "functions": {
     "source": ".",
-    "region": "asia-east1"
+    "region": "asia-east1",
+    "runtime": "nodejs22"
   },
   "hosting": {
     "source": ".",
