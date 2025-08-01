@@ -38,10 +38,13 @@ const PropertyListings: FC = () => {
       try {
         const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
         const querySnapshot = await getDocs(q);
-        const fetchedProperties = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Property[];
+        const fetchedProperties = querySnapshot.docs
+            .map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            }))
+            // Filter out old properties with invalid Base64 image data
+            .filter(prop => prop.image && typeof prop.image === 'string' && prop.image.startsWith('https://res.cloudinary.com')) as Property[];
         
         setAllProperties(fetchedProperties);
 
