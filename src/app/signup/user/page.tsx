@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -14,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Rocket } from 'lucide-react';
-import logo from '@/assets/logo.png';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function UserSignupPage() {
@@ -100,7 +98,7 @@ export default function UserSignupPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} priority style={{ height: 'auto' }} />
+                <span className="font-bold text-2xl font-headline text-primary">Hobo Livings</span>
             </Link>
             <CardTitle className="font-headline text-2xl">Create Your Account</CardTitle>
             <CardDescription>Find your next home with us.</CardDescription>

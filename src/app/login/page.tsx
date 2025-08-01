@@ -3,7 +3,6 @@
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -13,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import logo from '@/assets/logo.png';
 import { Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
 
@@ -101,7 +99,7 @@ function LoginContent() {
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center">
             <Link href="/" className="flex justify-center mb-4">
-                <Image src={logo} alt="Hobo Livings Logo" width={140} height={40} priority style={{ height: 'auto' }} />
+                 <span className="font-bold text-2xl font-headline text-primary">Hobo Livings</span>
             </Link>
           <CardTitle className="text-2xl font-headline">{loginTitle}</CardTitle>
           <CardDescription>{loginDescription}</CardDescription>

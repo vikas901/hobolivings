@@ -13,7 +13,6 @@ import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/ty
 import { allAmenities, allCategories } from '@/lib/dummy-data';
 import { ListFilter, Map as MapIcon, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Skeleton } from './ui/skeleton';
 import { PropertyDetailModal } from './property-detail-modal';
 
 interface PropertyFiltersProps {
