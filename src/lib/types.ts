@@ -36,7 +36,7 @@ export interface Property {
   };
   status: PropertyStatus;
   ownerId: string;
-  createdAt?: Timestamp;
+  createdAt?: number | Timestamp;
 }
 
 export type UserProfileType = 'student' | 'professional' | 'owner';
