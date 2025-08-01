@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, type FC } from 'react';
+import { useState, useMemo, type FC, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,11 +31,13 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
-  useMemo(() => {
+  useEffect(() => {
     if (properties.length > 0) {
-      const highestPrice = Math.max(...properties.map(p => p.price), 25000);
+      const highestPrice = Math.ceil(Math.max(...properties.map(p => p.price), 25000) / 1000) * 1000;
       setMaxPrice(highestPrice);
-      setPriceRange([0, highestPrice]);
+      if(priceRange[1] === 25000) { // Only update if it's the default
+        setPriceRange([0, highestPrice]);
+      }
     }
   }, [properties]);
   
@@ -44,7 +46,8 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         property.title.toLowerCase().includes(searchLower) ||
-        property.location.toLowerCase().includes(searchLower);
+        property.location.toLowerCase().includes(searchLower) ||
+        property.city.toLowerCase().includes(searchLower);
       const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
       const matchesCity = selectedCity === 'all' || property.city === selectedCity;
       const matchesType = selectedType === 'All' || property.type === selectedType;
@@ -197,7 +200,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
                     <PropertyCard key={property.id} property={property} onCardClick={handleCardClick} />
                   ))
                 ) : (
-                  <p className="md:col-span-2 xl:col-span-3 text-center text-muted-foreground">No properties match your criteria. Try adjusting your filters.</p>
+                  <p className="md:col-span-2 xl:col-span-3 text-center text-muted-foreground py-16">No properties match your criteria. Try adjusting your filters.</p>
                 )}
               </div>
             ) : (

@@ -1,19 +1,76 @@
+
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { Property } from '@/lib/types';
 import { PropertyFilters } from './property-filters';
 import Image from 'next/image';
 import heroImage from '@/assets/hero-image.png';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from './ui/skeleton';
 
-interface PropertyListingsProps {
-  properties: Property[];
-}
-
-export default function PropertyListings({ properties }: PropertyListingsProps) {
+export default function PropertyListings() {
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
+        const querySnapshot = await getDocs(q);
+        const fetchedProperties = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          
+          const imageUrl = (data.images && data.images.length > 0 && typeof data.images[0] === 'string' && data.images[0].startsWith('https://res.cloudinary.com')) 
+            ? data.images[0] 
+            : 'https://placehold.co/600x400.png';
+
+          let createdAt: number;
+          if (data.createdAt && data.createdAt instanceof Timestamp) {
+              createdAt = data.createdAt.toMillis();
+          } else if (typeof data.createdAt === 'number') {
+              createdAt = data.createdAt;
+          } else {
+              createdAt = Date.now();
+          }
+
+          return {
+              id: doc.id,
+              title: data.title,
+              image: imageUrl,
+              images: data.images || [imageUrl],
+              dataAiHint: data.dataAiHint || 'property exterior',
+              price: data.price,
+              location: data.location,
+              city: data.city,
+              rating: data.rating,
+              reviews: data.reviews,
+              type: data.type,
+              category: data.category,
+              amenities: data.amenities,
+              description: data.description,
+              roomOptions: data.roomOptions,
+              map: data.map,
+              status: data.status,
+              ownerId: data.ownerId,
+              createdAt: createdAt,
+            } as Property;
+        }).filter((p): p is Property => p !== null);
+
+        setProperties(fetchedProperties);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, []);
   
   return (
     <>
@@ -21,9 +78,8 @@ export default function PropertyListings({ properties }: PropertyListingsProps) 
         <Image
           src={heroImage}
           alt="Comfortable and modern student accommodation living area"
-          layout="fill"
-          objectFit="cover"
-          className="absolute inset-0 z-0"
+          fill
+          className="absolute inset-0 z-0 object-cover"
           placeholder="blur"
           priority
         />
@@ -44,7 +100,29 @@ export default function PropertyListings({ properties }: PropertyListingsProps) 
         </div>
       </section>
       
-      <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      {loading ? (
+        <div className="container mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <aside className="hidden lg:block lg:col-span-1">
+                    <div className="sticky top-24 space-y-4">
+                        <Skeleton className="h-8 w-1/3" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                    </div>
+                </aside>
+                <div className="lg:col-span-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <Skeleton className="h-96 w-full" />
+                        <Skeleton className="h-96 w-full" />
+                        <Skeleton className="h-96 w-full" />
+                    </div>
+                </div>
+            </div>
+        </div>
+      ) : (
+        <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      )}
     </>
   );
 };
