@@ -22,6 +22,7 @@ const PropertyListings: FC = () => {
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [maxPrice, setMaxPrice] = useState(25000);
   const [priceRange, setPriceRange] = useState([0, 25000]);
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedType, setSelectedType] = useState<PropertyType | 'All'>('All');
@@ -38,13 +39,16 @@ const PropertyListings: FC = () => {
       try {
         const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
         const querySnapshot = await getDocs(q);
-        const fetchedProperties = querySnapshot.docs
-            .map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-            }))
-            // Filter out old properties with invalid Base64 image data
-            .filter(prop => prop.image && typeof prop.image === 'string' && prop.image.startsWith('https://res.cloudinary.com')) as Property[];
+        const fetchedProperties = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+        })) as Property[];
+        
+        if (fetchedProperties.length > 0) {
+          const highestPrice = Math.max(...fetchedProperties.map(p => p.price), 25000);
+          setMaxPrice(highestPrice);
+          setPriceRange([0, highestPrice]);
+        }
         
         setAllProperties(fetchedProperties);
 
@@ -128,11 +132,11 @@ const PropertyListings: FC = () => {
       </div>
 
       <div>
-        <Label className="font-semibold">Price Range (₹{priceRange[0]} - ₹{priceRange[1]})</Label>
+        <Label className="font-semibold">Price Range (₹{priceRange[0].toLocaleString()} - ₹{priceRange[1].toLocaleString()})</Label>
         <Slider
           className="mt-4"
           min={0}
-          max={25000}
+          max={maxPrice}
           step={500}
           value={priceRange}
           onValueChange={(value) => setPriceRange(value)}
