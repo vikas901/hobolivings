@@ -16,15 +16,36 @@ export default async function Home() {
       const fetchedProperties = querySnapshot.docs.map(doc => {
         const data = doc.data();
         
+        // Ensure image URL is valid, otherwise use a placeholder
         const imageUrl = (data.images && data.images.length > 0 && typeof data.images[0] === 'string' && data.images[0].startsWith('https://res.cloudinary.com')) 
           ? data.images[0] 
-          : (typeof data.image === 'string' && data.image.startsWith('https://res.cloudinary.com') ? data.image : 'https://placehold.co/600x400.png');
+          : 'https://placehold.co/600x400.png';
+
+        // Convert Firestore Timestamp to a number (milliseconds) for safe serialization
+        const createdAt = data.createdAt instanceof Timestamp 
+          ? data.createdAt.toMillis() 
+          : (data.createdAt || Date.now());
 
         return {
             id: doc.id,
-            ...data,
+            title: data.title,
             image: imageUrl,
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now(),
+            images: data.images || [imageUrl],
+            dataAiHint: data.dataAiHint || 'property exterior',
+            price: data.price,
+            location: data.location,
+            city: data.city,
+            rating: data.rating,
+            reviews: data.reviews,
+            type: data.type,
+            category: data.category,
+            amenities: data.amenities,
+            description: data.description,
+            roomOptions: data.roomOptions,
+            map: data.map,
+            status: data.status,
+            ownerId: data.ownerId,
+            createdAt: createdAt,
           } as Property;
 
       }).filter((p): p is Property => p !== null); 

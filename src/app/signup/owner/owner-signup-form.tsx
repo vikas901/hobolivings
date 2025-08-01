@@ -18,6 +18,16 @@ import { Loader2, Rocket } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import logo from '@/assets/logo.png';
 
+type FormErrors = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  password?: string;
+  confirmPassword?: string;
+};
+
+
 export function OwnerSignupForm() {
   const [formData, setFormData] = useState({
     name: '',
@@ -30,20 +40,20 @@ export function OwnerSignupForm() {
   });
   
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const router = useRouter();
   const { toast } = useToast();
 
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
+    if (errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: null }));
     }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: FormErrors = {};
     if (!formData.name.trim()) newErrors.name = 'Full name is required';
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
