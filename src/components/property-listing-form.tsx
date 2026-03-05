@@ -19,6 +19,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useState } from 'react';
 import Image from 'next/image';
 import { CloudinaryUploadWidget } from '@/components/cloudinary-upload-widget';
+import { useRouter } from 'next/navigation';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
@@ -45,6 +46,7 @@ export default function PropertyListingForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const router = useRouter();
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
@@ -92,7 +94,7 @@ export default function PropertyListingForm() {
             image: data.imageUrl,
             images: [data.imageUrl],
             ownerId: user.uid,
-            status: 'approved' as const,
+            status: 'pending' as const,
             rating: 0,
             reviews: 0,
             createdAt: serverTimestamp(),
@@ -102,11 +104,10 @@ export default function PropertyListingForm() {
         await addDoc(collection(db, 'properties'), propertyData);
 
         toast({
-            title: 'Property Listed!',
-            description: 'Your property is now live on the platform.',
+            title: 'Property Submitted!',
+            description: 'Your property has been submitted for review. You will be redirected to your dashboard.',
         });
-        form.reset();
-        setImageUrl(null);
+        router.push('/owner/dashboard');
 
     } catch (error) {
         console.error("Error submitting form: ", error);
