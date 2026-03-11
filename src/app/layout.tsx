@@ -5,12 +5,12 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'Hobo Livings | Premium Student Hostels, PGs & Rooms in Delhi NCR',
-  description: 'Find the best student hostels, PGs, and rooms in Noida and Greater Noida. Safe, affordable, and fully-equipped accommodations near major universities. Your search for the perfect student haven ends here.',
-  keywords: ['student hostel', 'PG for students', 'student accommodation', 'Hobo Livings', 'Noida', 'Greater Noida', 'rooms for rent'],
+  title: 'Hobo Livings | Premium Hostels, PGs & Co-Living in Delhi NCR',
+  description: 'Find the best hostels, PGs, and co-living spaces in Noida & Greater Noida. Safe, affordable, and fully-equipped for students and working professionals.',
+  keywords: ['hostel', 'PG', 'co-living', 'rooms for rent', 'student accommodation', 'working professional accommodation', 'Hobo Livings', 'Noida', 'Greater Noida'],
   openGraph: {
-    title: 'Hobo Livings | Premium Student Hostels & PGs',
-    description: 'The best student hostels, PGs, and rooms in Delhi NCR. Safe, affordable, and fully-equipped.',
+    title: 'Hobo Livings | Premium Hostels, PGs & Co-Living Spaces',
+    description: 'The best living spaces for students and professionals in Delhi NCR. Safe, affordable, and fully-equipped.',
     url: 'https://hobo-livings.firebaseapp.com', // Replace with your actual domain
     siteName: 'Hobo Livings',
     images: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
         url: 'https://res.cloudinary.com/dbf1vsz6g/image/upload/v1754110825/og-image.png', // A representative image URL
         width: 1200,
         height: 630,
-        alt: 'Hobo Livings - Your Student Haven'
+        alt: 'Hobo Livings - Your Perfect Space'
       },
     ],
     locale: 'en_US',
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hobo Livings | Premium Student Hostels & PGs',
-    description: 'Find the best student hostels, PGs, and rooms in Delhi NCR. Safe, affordable, and fully-equipped.',
+    title: 'Hobo Livings | Premium Hostels, PGs & Co-Living Spaces',
+    description: 'Find the best living spaces for students and professionals in Delhi NCR. Safe, affordable, and fully-equipped.',
     images: ['https://res.cloudinary.com/dbf1vsz6g/image/upload/v1754110825/og-image.png'], // A representative image URL
   },
 };

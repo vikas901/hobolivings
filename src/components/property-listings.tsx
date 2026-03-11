@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -77,7 +76,7 @@ export default function PropertyListings() {
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center">
         <Image
           src={heroImage}
-          alt="Comfortable and modern student accommodation living area"
+          alt="Comfortable and modern co-living space"
           fill
           className="absolute inset-0 z-0 object-cover"
           placeholder="blur"
@@ -85,8 +84,8 @@ export default function PropertyListings() {
         />
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="relative z-10 container text-white px-4">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold">Find Your Student Haven in Delhi NCR</h1>
-          <p className="mt-4 text-lg md:text-xl max-w-3xl mx-auto">The best student hostels, PGs, and rooms in Noida & Greater Noida. Your search ends here.</p>
+          <h1 className="font-headline text-4xl md:text-6xl font-bold">Your Perfect Space in Delhi NCR</h1>
+          <p className="mt-4 text-lg md:text-xl max-w-3xl mx-auto">Discover premium hostels, PGs, and co-living spaces. Fully-equipped for students and working professionals alike.</p>
            <div className="relative w-full max-w-sm mx-auto mt-8">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
