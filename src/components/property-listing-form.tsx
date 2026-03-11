@@ -15,11 +15,12 @@ import { Loader2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useState } from 'react';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CloudinaryUploadWidget } from '@/components/cloudinary-upload-widget';
 import { useRouter } from 'next/navigation';
+import type { Property } from '@/lib/types';
 
 const roomOptionSchema = z.object({
   occupancy: z.enum(['Single', 'Double', 'Triple']),
@@ -41,24 +42,30 @@ const formSchema = z.object({
 
 type PropertyFormValues = z.infer<typeof formSchema>;
 
-export default function PropertyListingForm() {
+interface PropertyListingFormProps {
+  propertyToEdit?: Property;
+}
+
+export default function PropertyListingForm({ propertyToEdit }: PropertyListingFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(propertyToEdit?.image || null);
   const router = useRouter();
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      city: '',
-      location: '',
-      amenities: [],
-      roomOptions: [{ occupancy: 'Single', price: 0 }],
-      imageUrl: '',
-      dataAiHint: '',
+      title: propertyToEdit?.title || '',
+      description: propertyToEdit?.description || '',
+      city: propertyToEdit?.city || '',
+      location: propertyToEdit?.location || '',
+      category: propertyToEdit?.category,
+      type: propertyToEdit?.type,
+      amenities: propertyToEdit?.amenities || [],
+      roomOptions: propertyToEdit?.roomOptions || [{ occupancy: 'Single', price: 0 }],
+      imageUrl: propertyToEdit?.image || '',
+      dataAiHint: propertyToEdit?.dataAiHint || '',
     },
   });
   
@@ -66,6 +73,13 @@ export default function PropertyListingForm() {
     name: 'roomOptions',
     control: form.control,
   });
+
+  useEffect(() => {
+    if (propertyToEdit?.image) {
+        setImageUrl(propertyToEdit.image);
+        form.setValue('imageUrl', propertyToEdit.image);
+    }
+  }, [propertyToEdit, form]);
 
   const handleUploadSuccess = (url: string) => {
     setImageUrl(url);
@@ -88,33 +102,50 @@ export default function PropertyListingForm() {
     try {
         const lowestPrice = Math.min(...data.roomOptions.map(o => o.price));
 
-        const propertyData = {
-            ...data,
-            price: lowestPrice,
-            image: data.imageUrl,
-            images: [data.imageUrl],
-            ownerId: user.uid,
-            status: 'pending' as const,
-            rating: 0,
-            reviews: 0,
-            createdAt: serverTimestamp(),
-            map: { lat: 0, lng: 0, nearby: [] },
-        };
+        if (propertyToEdit) {
+            const docRef = doc(db, 'properties', propertyToEdit.id);
+            const updatedData = {
+                ...data,
+                price: lowestPrice,
+                image: data.imageUrl,
+                images: [data.imageUrl],
+                status: 'pending' as const,
+                updatedAt: serverTimestamp(),
+            };
+            await updateDoc(docRef, updatedData);
+            toast({
+                title: 'Property Updated!',
+                description: 'Your changes have been submitted for review.',
+            });
+        } else {
+            const newData = {
+                ...data,
+                price: lowestPrice,
+                image: data.imageUrl,
+                images: [data.imageUrl],
+                ownerId: user.uid,
+                status: 'pending' as const,
+                rating: 0,
+                reviews: 0,
+                createdAt: serverTimestamp(),
+                map: { lat: 0, lng: 0, nearby: [] },
+            };
+            await addDoc(collection(db, 'properties'), newData);
+            toast({
+                title: 'Property Submitted!',
+                description: 'Your property has been submitted for review. You will be redirected to your dashboard.',
+            });
+        }
         
-        await addDoc(collection(db, 'properties'), propertyData);
-
-        toast({
-            title: 'Property Submitted!',
-            description: 'Your property has been submitted for review. You will be redirected to your dashboard.',
-        });
         router.push('/owner/dashboard');
+        router.refresh(); // To ensure the dashboard shows the latest data
 
     } catch (error) {
         console.error("Error submitting form: ", error);
         toast({
             variant: 'destructive',
             title: 'Submission Failed',
-            description: 'There was an error listing your property. Please try again.',
+            description: 'There was an error saving your property. Please try again.',
         });
     } finally {
         setIsSubmitting(false);
@@ -325,7 +356,7 @@ export default function PropertyListingForm() {
                        <CloudinaryUploadWidget onUploadSuccess={handleUploadSuccess} />
                        {imageUrl && (
                           <div className="mt-4 relative w-full h-64">
-                             <Image src={imageUrl} alt="Uploaded image preview" layout="fill" objectFit="contain" className="rounded-lg border" />
+                             <Image src={imageUrl} alt="Uploaded image preview" fill={true} style={{objectFit: "contain"}} className="rounded-lg border" />
                           </div>
                        )}
                     </div>
@@ -350,7 +381,7 @@ export default function PropertyListingForm() {
 
         <Button type="submit" size="lg" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? 'Submitting...' : 'Submit Property'}
+            {isSubmitting ? (propertyToEdit ? 'Updating...' : 'Submitting...') : (propertyToEdit ? 'Update Property' : 'Submit Property')}
         </Button>
       </form>
     </Form>

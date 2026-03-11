@@ -17,9 +17,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 interface OwnerPropertiesTableProps {
   properties: Property[];
+  onView: (property: Property) => void;
+  onEdit: (property: Property) => void;
+  onDelete: (property: Property) => void;
 }
 
-export function OwnerPropertiesTable({ properties }: OwnerPropertiesTableProps) {
+export function OwnerPropertiesTable({ properties, onView, onEdit, onDelete }: OwnerPropertiesTableProps) {
   if (properties.length === 0) {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -83,9 +86,9 @@ export function OwnerPropertiesTable({ properties }: OwnerPropertiesTableProps) 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onView(property)}>View</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit(property)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onDelete(property)} className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </TableCell>
