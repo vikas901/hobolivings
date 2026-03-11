@@ -22,8 +22,8 @@ interface PropertyFiltersProps {
 }
 
 export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTerm, setSearchTerm }) => {
-  const [priceRange, setPriceRange] = useState([0, 25000]);
-  const [maxPrice, setMaxPrice] = useState(25000);
+  const [priceRange, setPriceRange] = useState([0, 50000]);
+  const [maxPrice, setMaxPrice] = useState(50000);
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedType, setSelectedType] = useState<PropertyType | 'All'>('All');
   const [selectedCategories, setSelectedCategories] = useState<PropertyCategory[]>([]);
@@ -33,10 +33,14 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
 
   useEffect(() => {
     if (properties.length > 0) {
-      const highestPrice = Math.ceil(Math.max(...properties.map(p => p.price), 25000) / 1000) * 1000;
-      setMaxPrice(highestPrice);
-      if(priceRange[1] === 25000) { // Only update if it's the default
-        setPriceRange([0, highestPrice]);
+      const highestPropertyPrice = Math.max(...properties.map(p => p.price));
+      const newMaxPrice = Math.ceil(highestPropertyPrice / 1000) * 1000;
+      
+      setMaxPrice(newMaxPrice > 0 ? newMaxPrice : 50000);
+      
+      // If the slider is still at its default max value, update it to reflect the actual data.
+      if (priceRange[1] === 50000) {
+        setPriceRange([0, newMaxPrice]);
       }
     }
   }, [properties]);
