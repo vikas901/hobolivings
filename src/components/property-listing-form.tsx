@@ -290,7 +290,7 @@ export default function PropertyListingForm({ propertyToEdit }: PropertyListingF
                     render={({ field }) => (
                     <FormItem className="flex-1">
                         <FormLabel>Price (per month)</FormLabel>
-                        <FormControl><Input type="number" placeholder="e.g., 8000" {...field} disabled={isSubmitting} /></FormControl>
+                        <FormControl><Input type="number" placeholder="e.g., 8000" {...field} onFocus={(e) => e.target.select()} disabled={isSubmitting} /></FormControl>
                         <FormMessage />
                     </FormItem>
                     )}
