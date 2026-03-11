@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/auth-context';
 import type { Property } from '@/lib/types';
@@ -32,13 +32,56 @@ export default function OwnerDashboardPage() {
       const fetchProperties = async () => {
         setLoading(true);
         try {
+          // Removed orderBy to prevent need for composite index
           const q = query(
             collection(db, 'properties'),
-            where('ownerId', '==', user.uid),
-            orderBy('createdAt', 'desc')
+            where('ownerId', '==', user.uid)
           );
           const querySnapshot = await getDocs(q);
-          const ownerProperties = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Property));
+          const ownerProperties: Property[] = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            
+            // Fallback image in case it's missing from the document
+            const imageUrl = (data.image && typeof data.image === 'string') 
+              ? data.image 
+              : 'https://placehold.co/600x400.png';
+
+            // Safely handle the createdAt timestamp, converting it to a number
+            let createdAt: number;
+            if (data.createdAt && data.createdAt instanceof Timestamp) {
+                createdAt = data.createdAt.toMillis();
+            } else if (typeof data.createdAt === 'number') {
+                createdAt = data.createdAt;
+            } else {
+                createdAt = Date.now();
+            }
+
+            return {
+                id: doc.id,
+                title: data.title || 'Untitled Property',
+                image: imageUrl,
+                images: data.images || [imageUrl],
+                dataAiHint: data.dataAiHint || 'property exterior',
+                price: data.price || 0,
+                location: data.location || 'No location',
+                city: data.city || 'No city',
+                rating: data.rating || 0,
+                reviews: data.reviews || 0,
+                type: data.type || 'Co-ed',
+                category: data.category || 'Room',
+                amenities: data.amenities || [],
+                description: data.description || '',
+                roomOptions: data.roomOptions || [],
+                map: data.map || { lat: 0, lng: 0, nearby: [] },
+                status: data.status || 'pending',
+                ownerId: data.ownerId,
+                createdAt: createdAt,
+              } as Property;
+          });
+
+          // Sort properties on the client-side to show newest first
+          ownerProperties.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
+
           setProperties(ownerProperties);
         } catch (error) {
           console.error("Error fetching owner's properties:", error);
