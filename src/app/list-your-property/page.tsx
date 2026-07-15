@@ -1,18 +1,41 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, UserCheck, Loader2, ShieldCheck } from 'lucide-react';
 import PropertyListingForm from '@/components/property-listing-form';
 import { useRouter } from 'next/navigation';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ListYourPropertyPage() {
   const { user, userProfile, loading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  const [switching, setSwitching] = useState(false);
+
+  const handleSwitchToLandlord = async () => {
+    if (!user || !userProfile) return;
+    setSwitching(true);
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        activeRole: 'landlord'
+      }, { merge: true });
+      toast({ title: 'Success', description: 'Switched to Landlord Mode successfully!' });
+      window.location.reload();
+    } catch (e: any) {
+      console.error(e);
+      toast({ variant: 'destructive', title: 'Error switching roles', description: e.message });
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -31,29 +54,39 @@ export default function ListYourPropertyPage() {
           <AlertCircle className="mx-auto h-12 w-12 text-primary" />
           <h2 className="mt-4 text-2xl font-bold font-headline">Get Started Listing Your Property</h2>
           <p className="mt-2 text-muted-foreground">
-            You need to be logged in as a property owner to list a property.
+            You need to be logged in to list properties on Hobo Livings.
           </p>
           <div className="mt-6 flex justify-center gap-4">
-            <Button onClick={() => router.push('/login?role=owner')}>Login</Button>
-            <Button variant="outline" onClick={() => router.push('/signup/owner')}>Create an Owner Account</Button>
+            <Button onClick={() => router.push('/login')}>Login / Sign Up</Button>
           </div>
         </CardContent>
       );
     }
 
-    if (userProfile?.profileType !== 'owner') {
-       return (
-        <CardContent className="text-center p-8">
-          <AlertCircle className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="mt-4 text-2xl font-bold font-headline">Incorrect Profile Type</h2>
-          <p className="mt-2 text-muted-foreground">
-            This page is for property owners. Your current account is a '{userProfile?.profileType}' account.
+    const hasLandlordRole = userProfile?.roles?.includes('landlord');
+    const isLandlordActive = userProfile?.activeRole === 'landlord';
+
+    if (!isLandlordActive) {
+      return (
+        <CardContent className="text-center p-8 space-y-4">
+          <AlertCircle className="mx-auto h-12 w-12 text-primary animate-pulse" />
+          <h2 className="text-2xl font-bold font-headline">Become a Host on Hobo Livings</h2>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Earn extra income by listing and managing co-living spaces, hostels, and PGs in Delhi NCR. Get verified to start hosting!
           </p>
-           <p className="mt-1 text-sm text-muted-foreground">
-             Please log out and create a new owner account to continue.
-          </p>
-          <div className="mt-6">
-            <Button onClick={() => router.push('/signup/owner')}>Create an Owner Account</Button>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+            {hasLandlordRole ? (
+              <Button onClick={handleSwitchToLandlord} disabled={switching}>
+                {switching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserCheck className="mr-2 h-4 w-4" />}
+                Switch to Host Mode
+              </Button>
+            ) : (
+              <Button onClick={() => router.push('/become-landlord')}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Complete Landlord KYC Verification
+              </Button>
+            )}
           </div>
         </CardContent>
       );

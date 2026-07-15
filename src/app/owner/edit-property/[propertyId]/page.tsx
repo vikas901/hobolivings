@@ -24,7 +24,7 @@ export default function EditPropertyPage() {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!user || userProfile?.profileType !== 'owner') {
+        if (!user || userProfile?.activeRole !== 'landlord') {
             router.replace('/list-your-property');
             return;
         }
@@ -64,6 +64,7 @@ export default function EditPropertyPage() {
                              ...data,
                             image: imageUrl,
                             images: data.images || [imageUrl],
+                            media: data.media,
                             createdAt,
                         } as Property);
                     }

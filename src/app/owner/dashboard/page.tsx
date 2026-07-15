@@ -79,6 +79,7 @@ export default function OwnerDashboardPage() {
             amenities: data.amenities || [],
             description: data.description || '',
             roomOptions: data.roomOptions || [],
+            media: data.media,
             map: data.map || { lat: 0, lng: 0, nearby: [] },
             status: data.status || 'pending',
             ownerId: data.ownerId,
@@ -97,7 +98,7 @@ export default function OwnerDashboardPage() {
   };
 
   useEffect(() => {
-    if (!authLoading && (!user || userProfile?.profileType !== 'owner')) {
+    if (!authLoading && (!user || userProfile?.activeRole !== 'landlord')) {
       router.push('/list-your-property');
       return;
     }
@@ -180,7 +181,33 @@ export default function OwnerDashboardPage() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 bg-secondary">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-12 space-y-6">
+          {userProfile?.landlordKycStatus !== 'verified' && (
+            <div className="p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <p className="font-bold flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse" />
+                  {userProfile?.landlordKycStatus === 'pending' 
+                    ? 'KYC Verification Pending' 
+                    : userProfile?.landlordKycStatus === 'rejected' 
+                      ? 'KYC Verification Rejected' 
+                      : 'KYC Document Submission Required'}
+                </p>
+                <p className="text-xs text-amber-700 leading-relaxed max-w-3xl">
+                  {userProfile?.landlordKycStatus === 'pending'
+                    ? 'Your identity and bank credentials are currently under review by our administration. You can still list new properties, but they will remain hidden from tenants (unapproved status) until your owner profile is verified.'
+                    : userProfile?.landlordKycStatus === 'rejected'
+                      ? 'Your KYC documents were rejected by admin review. Please click the complete button to check details or re-verify.'
+                      : 'To comply with Hobo Livings standards and publish properties to search listings, please complete your payout bank details and KYC documentation.'}
+                </p>
+              </div>
+              {userProfile?.landlordKycStatus !== 'pending' && (
+                <Button size="sm" onClick={() => router.push('/become-landlord')} className="bg-amber-600 hover:bg-amber-700 text-white shrink-0 text-xs">
+                  Complete Verification
+                </Button>
+              )}
+            </div>
+          )}
           {renderContent()}
         </div>
       </main>

@@ -11,9 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import PropertyCard from './property-card';
 import type { Property, Amenity, PropertyCategory, PropertyType } from '@/lib/types';
 import { allAmenities, allCategories } from '@/lib/dummy-data';
-import { ListFilter, Map as MapIcon } from 'lucide-react';
+import { ListFilter, Map as MapIcon, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PropertyDetailModal } from './property-detail-modal';
+import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
+import { doc, setDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { formatIndianCurrency } from '@/components/ui/currency-input';
+import { Badge } from '@/components/ui/badge';
 
 interface PropertyFiltersProps {
   properties: Property[];
@@ -30,6 +37,49 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
   const [selectedAmenities, setSelectedAmenities] = useState<Amenity[]>([]);
   const [viewMode, setViewMode] = useState('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [autoCheckout, setAutoCheckout] = useState(false);
+
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (properties.length === 0) return;
+    const action = searchParams.get('action');
+    const propertyId = searchParams.get('propertyId');
+    if (!propertyId) return;
+
+    const prop = properties.find(p => p.id === propertyId);
+    if (!prop) return;
+
+    if (action === 'book') {
+      setSelectedProperty(prop);
+      setAutoCheckout(true);
+      
+      const url = new URL(window.location.href);
+      url.searchParams.delete('action');
+      url.searchParams.delete('propertyId');
+      window.history.replaceState({}, '', url.toString());
+    } else if (action === 'save' && user) {
+      const saveFavorite = async () => {
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            favorites: arrayUnion(propertyId)
+          }, { merge: true });
+          toast({ title: 'Saved! ❤️', description: 'Property saved to your favorites.' });
+          setSelectedProperty(prop);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      saveFavorite();
+      
+      const url = new URL(window.location.href);
+      url.searchParams.delete('action');
+      url.searchParams.delete('propertyId');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, properties, user]);
 
   useEffect(() => {
     if (properties.length > 0) {
@@ -97,10 +147,43 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
 
   const handleModalClose = () => {
     setSelectedProperty(null);
+    setAutoCheckout(false);
   }
+
+  // Count active filters
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCity !== 'all') count++;
+    if (selectedType !== 'All') count++;
+    if (selectedCategories.length > 0) count += selectedCategories.length;
+    if (selectedAmenities.length > 0) count += selectedAmenities.length;
+    if (priceRange[0] > 0 || priceRange[1] < maxPrice) count++;
+    return count;
+  }, [selectedCity, selectedType, selectedCategories, selectedAmenities, priceRange, maxPrice]);
+
+  const handleClearAllFilters = () => {
+    setSelectedCity('all');
+    setSelectedType('All');
+    setSelectedCategories([]);
+    setSelectedAmenities([]);
+    setPriceRange([0, maxPrice]);
+    setSearchTerm('');
+  };
 
   const FiltersComponent = () => (
     <div className="space-y-6">
+      {/* Clear All Button */}
+      {activeFilterCount > 0 && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleClearAllFilters} 
+          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <X className="mr-2 h-4 w-4" /> Clear All Filters ({activeFilterCount})
+        </Button>
+      )}
+
       <div>
         <Label htmlFor="city-select" className="font-semibold">City</Label>
         <Select value={selectedCity} onValueChange={setSelectedCity}>
@@ -115,9 +198,15 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
       </div>
 
       <div>
-        <Label className="font-semibold">Price Range (₹{priceRange[0].toLocaleString()} - ₹{priceRange[1].toLocaleString()})</Label>
+        <Label className="font-semibold">
+          Price Range
+        </Label>
+        <div className="flex items-center justify-between mt-1 text-sm text-muted-foreground">
+          <span>₹{formatIndianCurrency(priceRange[0])}</span>
+          <span>₹{formatIndianCurrency(priceRange[1])}</span>
+        </div>
         <Slider
-          className="mt-4"
+          className="mt-3"
           min={0}
           max={maxPrice}
           step={500}
@@ -180,7 +269,14 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
                 <div className="lg:hidden">
                   <Sheet>
                     <SheetTrigger asChild>
-                       <Button variant="outline" size="sm"><ListFilter className="mr-2 h-4 w-4" /> Filters</Button>
+                       <Button variant="outline" size="sm" className="relative">
+                         <ListFilter className="mr-2 h-4 w-4" /> Filters
+                         {activeFilterCount > 0 && (
+                           <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                             {activeFilterCount}
+                           </Badge>
+                         )}
+                       </Button>
                     </SheetTrigger>
                     <SheetContent>
                         <SheetHeader><SheetTitle className="font-headline">Filters</SheetTitle></SheetHeader>
@@ -204,7 +300,16 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
                     <PropertyCard key={property.id} property={property} onCardClick={handleCardClick} />
                   ))
                 ) : (
-                  <p className="md:col-span-2 xl:col-span-3 text-center text-muted-foreground py-16">No properties match your criteria. Try adjusting your filters.</p>
+                  <div className="md:col-span-2 xl:col-span-3 text-center py-16 space-y-3">
+                    <p className="text-2xl">🔍</p>
+                    <p className="text-muted-foreground font-medium">No properties match your criteria.</p>
+                    <p className="text-sm text-muted-foreground">Try adjusting your filters or search term.</p>
+                    {activeFilterCount > 0 && (
+                      <Button variant="outline" size="sm" onClick={handleClearAllFilters}>
+                        <X className="mr-2 h-4 w-4" /> Clear All Filters
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             ) : (
@@ -220,6 +325,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
             property={selectedProperty}
             isOpen={!!selectedProperty}
             onClose={handleModalClose}
+            autoTriggerCheckout={autoCheckout}
         />
       )}
     </>

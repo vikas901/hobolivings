@@ -6,6 +6,7 @@ import { PropertyFilters } from './property-filters';
 import Image from 'next/image';
 import heroImage from '@/assets/hero-image.png';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -19,10 +20,30 @@ export default function PropertyListings() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+        // Fetch approved properties
         const q = query(collection(db, 'properties'), where('status', '==', 'approved'));
         const querySnapshot = await getDocs(q);
+
+        // Fetch owners to check verification/suspension status
+        const ownersSnapshot = await getDocs(collection(db, 'users'));
+        const ownersMap = new Map<string, any>();
+        ownersSnapshot.docs.forEach(doc => {
+          ownersMap.set(doc.id, doc.data());
+        });
+        
         const fetchedProperties = querySnapshot.docs.map(doc => {
           const data = doc.data();
+          
+          // Verify owner status
+          const owner = ownersMap.get(data.ownerId);
+          // Fallback to true/false for dummy properties where owner doc does not exist
+          const isOwnerVerified = owner ? owner.landlordKycStatus === 'verified' : true;
+          const isOwnerSuspended = owner ? owner.isSuspended === true : false;
+
+          // Exclude properties of unverified or suspended owners
+          if (!isOwnerVerified || isOwnerSuspended) {
+            return null;
+          }
           
           const imageUrl = (data.images && data.images.length > 0 && typeof data.images[0] === 'string' && data.images[0].startsWith('https://res.cloudinary.com')) 
             ? data.images[0] 
@@ -53,6 +74,7 @@ export default function PropertyListings() {
               amenities: data.amenities,
               description: data.description,
               roomOptions: data.roomOptions,
+              media: data.media,
               map: data.map,
               status: data.status,
               ownerId: data.ownerId,
@@ -73,7 +95,7 @@ export default function PropertyListings() {
   
   return (
     <>
-      <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center text-center">
+      <section className="relative h-[65vh] min-h-[500px] flex items-center justify-center text-center">
         <Image
           src={heroImage}
           alt="Comfortable and modern co-living space"
@@ -82,20 +104,61 @@ export default function PropertyListings() {
           placeholder="blur"
           priority
         />
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="relative z-10 container text-white px-4">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold">Your Perfect Space in Delhi NCR</h1>
-          <p className="mt-4 text-lg md:text-xl max-w-3xl mx-auto">Discover premium hostels, PGs, and co-living spaces. Fully-equipped for students and working professionals alike.</p>
-           <div className="relative w-full max-w-sm mx-auto mt-8">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70"></div>
+        <div className="relative z-10 container text-white px-4 max-w-4xl space-y-6">
+          <h1 className="font-headline text-4xl md:text-7xl font-extrabold tracking-tight drop-shadow-md">
+            Affordable Living.<br className="md:hidden" />
+            <span className="bg-gradient-to-r from-rose-400 via-pink-500 to-primary bg-clip-text text-transparent ml-2 drop-shadow-none">
+              Better Experiences.
+            </span>
+          </h1>
+          
+          <p className="mt-4 text-base md:text-xl max-w-2xl mx-auto text-white/95 leading-relaxed font-medium">
+            Hobo Livings helps students and working professionals find safe, verified, and affordable PGs, hostels, rooms, and co-living spaces across India.
+          </p>
+
+          <div className="relative w-full max-w-xl mx-auto mt-8 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search by city, location, or landmark..."
-                className="w-full h-11 pl-10 pr-4 text-base rounded-full shadow-lg text-foreground"
+                className="w-full h-14 pl-12 pr-28 text-base rounded-full shadow-2xl text-foreground bg-background border-none focus-visible:ring-2 focus-visible:ring-primary"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               />
+              <Button 
+                onClick={() => document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' })}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-6 rounded-full font-semibold shadow-md"
+              >
+                Search
+              </Button>
             </div>
+
+            {/* Popular City Shortcuts */}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs pt-1">
+              <span className="text-white/80 font-medium">Popular:</span>
+              {['Noida', 'Delhi', 'Gurgaon', 'Greater Noida'].map((city) => (
+                <button
+                  key={city}
+                  onClick={() => {
+                    setSearchTerm(city);
+                    setTimeout(() => {
+                      document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  className="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-1 rounded-full border border-white/25 transition-all shadow-sm"
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
       
@@ -120,7 +183,9 @@ export default function PropertyListings() {
             </div>
         </div>
       ) : (
-        <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        <div id="explore-spaces" className="scroll-mt-20">
+          <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
       )}
     </>
   );

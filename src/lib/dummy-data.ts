@@ -171,7 +171,7 @@ export const properties: Property[] = [
     reviews: 130,
     type: 'Co-ed',
     category: 'Hotel',
-    amenities: ['WiFi', 'AC', 'Housekeeping', 'Room Service'],
+    amenities: ['WiFi', 'AC', 'Housekeeping', 'Food'],
     description: 'A comfortable hotel room available for monthly stays. Perfect for corporate clients or people in transition. No kitchen.',
     roomOptions: [{ occupancy: 'Single', price: 25000 }],
     map: { lat: 28.57, lng: 77.323, nearby: [{ name: 'DLF Mall of India', distance: '500m' }] },
@@ -493,4 +493,14 @@ export const properties: Property[] = [
 
 export const allAmenities: ('WiFi' | 'AC' | 'Food' | 'Parking' | 'Laundry' | 'Geyser' | 'Housekeeping' | 'CCTV')[] = ['WiFi', 'AC', 'Food', 'Parking', 'Laundry', 'Geyser', 'Housekeeping', 'CCTV'];
 export const allCategories: ('Hostel' | 'PG' | 'Room' | 'Hotel')[] = ['Hostel', 'PG', 'Room', 'Hotel'];
-export const allCities = ['Noida', 'Greater Noida'];
+export const allCities = [
+  // Delhi NCR
+  'Delhi', 'Noida', 'Greater Noida', 'Gurgaon', 'Faridabad', 'Ghaziabad',
+  // Major Metros
+  'Mumbai', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad',
+  // Tier-2 Cities
+  'Jaipur', 'Lucknow', 'Chandigarh', 'Indore', 'Kochi', 'Coimbatore',
+  'Bhopal', 'Nagpur', 'Vadodara', 'Thiruvananthapuram', 'Visakhapatnam',
+  'Patna', 'Dehradun', 'Mangalore', 'Mysore', 'Surat', 'Ranchi',
+  'Bhubaneswar', 'Goa', 'Pondicherry', 'Agra', 'Varanasi',
+];

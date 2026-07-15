@@ -1,14 +1,15 @@
 
 {
   "hosting": {
-    "source": ".",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "asia-east1"
-    }
+    ]
+  },
+  "apphosting": {
+    "backendId": "hobo-livings",
+    "rootDir": "."
   }
 }

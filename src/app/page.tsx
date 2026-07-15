@@ -12,7 +12,7 @@ export default function Home() {
   const { user, userProfile, loading } = useAuth();
   const router = useRouter();
 
-  const isOwner = user && userProfile?.profileType === 'owner';
+  const isOwner = user && userProfile?.activeRole === 'landlord';
 
   useEffect(() => {
     if (!loading && isOwner) {

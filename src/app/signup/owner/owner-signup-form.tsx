@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Rocket } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/context/auth-context';
+import { PasswordInput } from '@/components/ui/password-input';
+import { PasswordStrength } from '@/components/ui/password-strength';
 import logo from '@/assets/logo.png';
 
 type FormErrors = {
@@ -29,6 +32,7 @@ type FormErrors = {
 
 
 export function OwnerSignupForm() {
+  const { user, userProfile, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -43,6 +47,16 @@ export function OwnerSignupForm() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user && userProfile) {
+      if (userProfile.profileType === 'owner') {
+        router.push('/owner/dashboard');
+      } else {
+        router.push('/');
+      }
+    }
+  }, [user, userProfile, authLoading, router]);
   const { toast } = useToast();
 
   const updateFormData = (field: string, value: any) => {
@@ -68,8 +82,17 @@ export function OwnerSignupForm() {
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    } else {
+      const criteria = {
+        length: formData.password.length >= 8,
+        uppercase: /[A-Z]/.test(formData.password),
+        lowercase: /[a-z]/.test(formData.password),
+        number: /[0-9]/.test(formData.password),
+        specialChar: /[@$!%*?&]/.test(formData.password),
+      }
+      if (!Object.values(criteria).every(Boolean)) {
+        newErrors.password = 'Password must meet all strength requirements';
+      }
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
@@ -95,6 +118,9 @@ export function OwnerSignupForm() {
         address: formData.address.trim(),
         companyType: formData.companyType,
         profileType: 'owner',
+        roles: ['landlord'],
+        activeRole: 'landlord',
+        landlordKycStatus: 'none',
         createdAt: new Date().toISOString(),
       });
 
@@ -105,11 +131,21 @@ export function OwnerSignupForm() {
       router.push('/list-your-property');
 
     } catch (error: any) {
+      if (auth.currentUser) {
+        try {
+          await auth.currentUser.delete();
+        } catch (deleteError) {
+          console.error("Failed to clean up authenticated user after profile creation failure:", deleteError);
+        }
+      }
+
       let errorMessage = 'An unknown error occurred.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already registered. Please log in instead.';
       } else if (error.code === 'auth/weak-password') {
         errorMessage = 'The password is too weak.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       toast({ variant: 'destructive', title: 'Signup Failed', description: errorMessage });
     } finally {
@@ -130,22 +166,22 @@ export function OwnerSignupForm() {
         <form onSubmit={handleSignup} className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Full Name / Company Name</Label>
-            <Input id="name" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} disabled={loading} className={errors.name ? 'border-destructive' : ''} />
+            <Input id="name" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} disabled={loading || authLoading} className={errors.name ? 'border-destructive' : ''} />
             {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
           </div>
            <div className="grid gap-2">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" value={formData.email} onChange={(e) => updateFormData('email', e.target.value)} disabled={loading} className={errors.email ? 'border-destructive' : ''} />
+            <Input id="email" type="email" value={formData.email} onChange={(e) => updateFormData('email', e.target.value)} disabled={loading || authLoading} className={errors.email ? 'border-destructive' : ''} />
             {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
           </div>
           <div className="grid gap-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" value={formData.phone} onChange={(e) => updateFormData('phone', e.target.value)} disabled={loading} className={errors.phone ? 'border-destructive' : ''} />
+              <Input id="phone" type="tel" value={formData.phone} onChange={(e) => updateFormData('phone', e.target.value)} disabled={loading || authLoading} className={errors.phone ? 'border-destructive' : ''} />
               {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
           </div>
            <div className="grid gap-2">
               <Label htmlFor="address">Address</Label>
-              <Textarea id="address" value={formData.address} onChange={(e) => updateFormData('address', e.target.value)} disabled={loading} className={errors.address ? 'border-destructive' : ''} />
+              <Textarea id="address" value={formData.address} onChange={(e) => updateFormData('address', e.target.value)} disabled={loading || authLoading} className={errors.address ? 'border-destructive' : ''} />
               {errors.address && <p className="text-sm text-destructive">{errors.address}</p>}
           </div>
           <div>
@@ -153,6 +189,7 @@ export function OwnerSignupForm() {
             <RadioGroup 
               value={formData.companyType} 
               onValueChange={(value) => updateFormData('companyType', value)}
+              disabled={loading || authLoading}
               className="flex gap-4 pt-2"
             >
               <div className="flex items-center space-x-2">
@@ -167,23 +204,32 @@ export function OwnerSignupForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={formData.password} onChange={(e) => updateFormData('password', e.target.value)} disabled={loading} className={errors.password ? 'border-destructive' : ''} />
+            <PasswordInput id="password" value={formData.password} onChange={(e) => updateFormData('password', e.target.value)} disabled={loading || authLoading} className={errors.password ? 'border-destructive' : ''} />
+            <PasswordStrength password={formData.password} />
             {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input id="confirm-password" type="password" value={formData.confirmPassword} onChange={(e) => updateFormData('confirmPassword', e.target.value)} disabled={loading} className={errors.confirmPassword ? 'border-destructive' : ''} />
+            <PasswordInput id="confirm-password" value={formData.confirmPassword} onChange={(e) => updateFormData('confirmPassword', e.target.value)} disabled={loading || authLoading} className={errors.confirmPassword ? 'border-destructive' : ''} />
             {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
-            {loading ? 'Creating Account...' : 'Create Account & Continue'}
+          <Button type="submit" className="w-full" disabled={loading || authLoading}>
+            {(loading || authLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {authLoading ? 'Verifying Session...' : loading ? 'Creating Account...' : 'Create Account & Continue'}
           </Button>
         </form>
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{' '}
-          <Link href="/login?role=owner" className="underline font-semibold text-primary">
-            Login as Owner
+        <div className="mt-4 flex flex-col gap-3 text-center text-sm">
+          <div>
+            Already have an account?{' '}
+            <Link href="/login?role=owner" className="underline font-semibold text-primary">
+              Login as Owner
+            </Link>
+          </div>
+          <div className="text-muted-foreground text-xs">or</div>
+          <Link href="/login?authMode=otp&role=owner">
+            <Button variant="outline" className="w-full text-xs" type="button">
+              Sign up / Login with Phone OTP
+            </Button>
           </Link>
         </div>
       </CardContent>

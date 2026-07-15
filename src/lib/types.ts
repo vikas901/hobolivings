@@ -10,11 +10,37 @@ export interface RoomOption {
   price: number;
 }
 
+export interface CategorizedImage {
+  id: string;
+  category: string;
+  url: string;
+  displayOrder: number;
+  uploadedAt: number;
+  uploadedBy: string;
+}
+
+export interface PropertyMedia {
+  coverPhoto?: CategorizedImage | null;
+  bedroom?: CategorizedImage[];
+  bathroom?: CategorizedImage[];
+  buildingExterior?: CategorizedImage[];
+  corridor?: CategorizedImage[];
+  kitchen?: CategorizedImage[];
+  dining?: CategorizedImage[];
+  balcony?: CategorizedImage[];
+  amenities?: CategorizedImage[];
+  parking?: CategorizedImage[];
+  laundry?: CategorizedImage[];
+  nearby?: CategorizedImage[];
+  floorPlan?: CategorizedImage[];
+}
+
 export interface Property {
   id: string;
   title: string;
   image: string;
   images?: string[];
+  media?: PropertyMedia;
   dataAiHint?: string;
   price: number;
   location: string;
@@ -45,10 +71,29 @@ export interface UserProfile {
     uid: string;
     email: string;
     name: string;
-    profileType: UserProfileType;
+    profileType?: UserProfileType;
     createdAt: string;
+    isAdmin?: boolean;
+    roles: ('tenant' | 'landlord')[];
+    activeRole: 'tenant' | 'landlord';
+    tenantType?: 'student' | 'professional';
+    landlordKycStatus?: 'pending' | 'verified' | 'rejected' | 'none';
+    landlordKycData?: {
+      phone?: string;
+      address?: string;
+      companyType?: 'individual' | 'company';
+      govtIdUrl?: string;
+      selfieUrl?: string;
+      ownershipProofUrl?: string;
+      bankDetails?: {
+        holderName: string;
+        accountNumber: string;
+        ifscCode: string;
+      };
+    };
+    favorites?: string[];
 
-    // Owner-specific fields
+    // Legacy fields for backward compatibility
     phone?: string;
     address?: string;
     companyType?: 'individual' | 'company';
