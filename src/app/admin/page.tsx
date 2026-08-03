@@ -9,8 +9,14 @@ import Footer from '@/components/footer';
 import { useAuth } from '@/context/auth-context';
 import { db, auth } from '@/lib/firebase';
 import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut 
+} from 'firebase/auth';
+import { 
   collection, 
   getDocs, 
+  getDoc,
   doc, 
   setDoc, 
   updateDoc, 
@@ -41,6 +47,10 @@ import {
 } from 'recharts';
 import { 
   ShieldCheck, 
+  ShieldAlert,
+  Lock,
+  LogOut,
+  KeyRound,
   Users, 
   Building2, 
   CalendarDays, 
@@ -120,8 +130,14 @@ export default function AdminPanel() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
-  const [bypassMode, setBypassMode] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+  // Admin Login & Setup Form State
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminMasterKey, setAdminMasterKey] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'promote'>('login');
 
   // Firestore & local state entities
   const [properties, setProperties] = useState<Property[]>([]);
@@ -150,14 +166,14 @@ export default function AdminPanel() {
   // Check auth and determine admin privilege
   useEffect(() => {
     if (!authLoading) {
-      const isUserAdmin = userProfile?.isAdmin === true || user?.email?.endsWith('@hobolivings.com');
-      if (isUserAdmin || bypassMode) {
-        setIsAdminAuthorized(true);
-      } else {
-        setIsAdminAuthorized(false);
-      }
+      const isUserAdmin = 
+        userProfile?.isAdmin === true || 
+        user?.email?.endsWith('@hobolivings.com') ||
+        user?.email === 'admin@hobolivings.com';
+
+      setIsAdminAuthorized(Boolean(isUserAdmin));
     }
-  }, [user, userProfile, authLoading, bypassMode]);
+  }, [user, userProfile, authLoading]);
 
   // Seed default data & fetch Firestore collections
   useEffect(() => {
@@ -178,7 +194,6 @@ export default function AdminPanel() {
         // 3. Fetch bookings (or seed mock if empty)
         const bookingSnapshot = await getDocs(collection(db, 'bookings'));
         if (bookingSnapshot.empty) {
-          // Seed mock bookings
           const mockBookings: AdminBooking[] = [
             {
               id: 'book1',
@@ -272,36 +287,111 @@ export default function AdminPanel() {
     fetchAllData();
   }, [isAdminAuthorized]);
 
-  // Demo Admin Login bypass handler
-  const handleDemoBypass = async () => {
-    setLoadingAction('bypass');
+  // Secure Admin Login Handler
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingAction('login');
+    setAuthError('');
     try {
-      if (user) {
-        // Upgrade current logged-in user profile to admin
-        await setDoc(doc(db, 'users', user.uid), {
-          isAdmin: true,
-          roles: ['tenant', 'landlord'],
-          activeRole: 'tenant'
-        }, { merge: true });
-        
-        toast({
-          title: "Bypass Successful",
-          description: "Your active user profile is elevated to Admin. Access granted!",
-        });
+      const userCred = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+      const userDocRef = doc(db, 'users', userCred.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      const isUserAdmin = 
+        userDoc.data()?.isAdmin === true || 
+        adminEmail.endsWith('@hobolivings.com') ||
+        adminEmail === 'admin@hobolivings.com';
+
+      if (isUserAdmin) {
+        if (!userDoc.data()?.isAdmin) {
+          await setDoc(userDocRef, { isAdmin: true }, { merge: true });
+        }
+        setIsAdminAuthorized(true);
+        toast({ title: "Admin Login Successful", description: `Authenticated as ${adminEmail}` });
+      } else {
+        setAuthError("Access Denied: Your account does not have administrator privileges.");
+        toast({ variant: "destructive", title: "Access Denied", description: "Account is not registered as Admin." });
       }
-      setBypassMode(true);
-      setIsAdminAuthorized(true);
-    } catch (e: any) {
-      console.error(e);
-      // Local state fallback if writing to database failed (e.g. permission restriction)
-      setBypassMode(true);
-      setIsAdminAuthorized(true);
-      toast({
-        title: "Sandbox Offline Access",
-        description: "Bypassed authentication. Working with client-side sandbox data.",
-      });
+    } catch (err: any) {
+      console.error(err);
+      setAuthError(err.message?.replace('Firebase: ', '') || "Invalid credentials provided.");
     } finally {
       setLoadingAction(null);
+    }
+  };
+
+  // Create Permanent Admin Account Handler
+  const handleCreatePermanentAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingAction('register');
+    setAuthError('');
+
+    if (adminMasterKey !== 'HOBO_ADMIN_2026') {
+      setAuthError('Invalid Master Admin Security Key. Please verify key.');
+      return;
+    }
+
+    try {
+      const userCred = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+      const userDocRef = doc(db, 'users', userCred.user.uid);
+      
+      await setDoc(userDocRef, {
+        uid: userCred.user.uid,
+        name: 'System Admin',
+        email: adminEmail,
+        isAdmin: true,
+        roles: ['tenant', 'landlord'],
+        activeRole: 'landlord',
+        createdAt: Date.now()
+      });
+
+      setIsAdminAuthorized(true);
+      toast({ title: "Admin Account Created", description: `Created permanent admin profile for ${adminEmail}` });
+    } catch (err: any) {
+      console.error(err);
+      setAuthError(err.message?.replace('Firebase: ', '') || "Failed to create admin account.");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  // Promote Active User Account Handler
+  const handlePromoteCurrentAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setLoadingAction('promote');
+    setAuthError('');
+
+    if (adminMasterKey !== 'HOBO_ADMIN_2026') {
+      setAuthError('Invalid Master Admin Security Key.');
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        isAdmin: true,
+        roles: ['tenant', 'landlord']
+      }, { merge: true });
+
+      setIsAdminAuthorized(true);
+      toast({ title: "Account Promoted", description: `${user.email} is now a Permanent Administrator!` });
+    } catch (err: any) {
+      console.error(err);
+      setAuthError(err.message?.replace('Firebase: ', '') || "Promotion failed.");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  // Secure Admin Sign Out
+  const handleAdminLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsAdminAuthorized(false);
+      toast({ title: "Signed Out", description: "Admin session ended securely." });
+    } catch (err: any) {
+      console.error(err);
     }
   };
 
@@ -601,47 +691,183 @@ export default function AdminPanel() {
     { name: 'Jul', revenue: totalRevenue || 180000 }
   ];
 
-  // Render unauthorized bypass screen
+  // Render secure unauthorized Admin Authentication screen
   if (!isAdminAuthorized) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
-        <main className="flex-1 flex items-center justify-center py-16 px-4">
+        <main className="flex-1 flex items-center justify-center py-16 px-4 bg-muted/20">
           <Card className="max-w-md w-full shadow-2xl border-rose-500/20">
             <CardHeader className="text-center space-y-2">
               <div className="mx-auto h-12 w-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <CardTitle className="text-2xl font-headline font-bold">Admin Authentication Portal</CardTitle>
-              <CardDescription>
-                Access restricted to authorized Hobo Livings administrators.
+              <CardTitle className="text-2xl font-headline font-bold">Admin Portal Security</CardTitle>
+              <CardDescription className="text-xs">
+                Restricted area. Please sign in with an authorized Administrator account.
               </CardDescription>
             </CardHeader>
+            
             <CardContent className="space-y-4">
-              <div className="p-4 bg-muted/30 rounded-lg text-xs leading-relaxed text-muted-foreground border">
-                <p className="font-semibold text-foreground mb-1">Testing & Demonstration Notice:</p>
-                Clicking the bypass action below automatically marks your current user account profile as an administrator (`isAdmin: true`) in the database to enable live testing.
-              </div>
-              {user ? (
-                <div className="text-center text-sm py-2">
-                  Logged in as: <span className="font-medium text-foreground">{user.email}</span>
-                </div>
-              ) : (
-                <div className="text-center text-xs text-muted-foreground py-2">
-                  Not logged in. Direct bypass will authorize using anonymous testing session.
+              {authError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-start gap-2">
+                  <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{authError}</span>
                 </div>
               )}
+
+              {/* Navigation tabs between Login, Create Admin, Promote */}
+              <div className="flex border-b text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                  className={`flex-1 py-2 text-center border-b-2 transition-colors ${
+                    authMode === 'login' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Admin Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthMode('register'); setAuthError(''); }}
+                  className={`flex-1 py-2 text-center border-b-2 transition-colors ${
+                    authMode === 'register' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  New Admin
+                </button>
+                {user && (
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('promote'); setAuthError(''); }}
+                    className={`flex-1 py-2 text-center border-b-2 transition-colors ${
+                      authMode === 'promote' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Promote Account
+                  </button>
+                )}
+              </div>
+
+              {/* Mode 1: Admin Login */}
+              {authMode === 'login' && (
+                <form onSubmit={handleAdminLogin} className="space-y-3 pt-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="admin-email" className="text-xs font-semibold">Admin Email</Label>
+                    <Input
+                      id="admin-email"
+                      type="email"
+                      placeholder="admin@hobolivings.com"
+                      value={adminEmail}
+                      onChange={e => setAdminEmail(e.target.value)}
+                      required
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="admin-pass" className="text-xs font-semibold">Password</Label>
+                    <Input
+                      id="admin-pass"
+                      type="password"
+                      placeholder="••••••••"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      required
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loadingAction === 'login'} 
+                    className="w-full py-5 text-xs font-semibold mt-2 shadow-md"
+                  >
+                    {loadingAction === 'login' && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                    Sign In to Console
+                  </Button>
+                </form>
+              )}
+
+              {/* Mode 2: Create Permanent Admin Account */}
+              {authMode === 'register' && (
+                <form onSubmit={handleCreatePermanentAdmin} className="space-y-3 pt-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="reg-email" className="text-xs font-semibold">New Admin Email *</Label>
+                    <Input
+                      id="reg-email"
+                      type="email"
+                      placeholder="your.email@hobolivings.com"
+                      value={adminEmail}
+                      onChange={e => setAdminEmail(e.target.value)}
+                      required
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="reg-pass" className="text-xs font-semibold">Set Password *</Label>
+                    <Input
+                      id="reg-pass"
+                      type="password"
+                      placeholder="At least 6 characters"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="reg-key" className="text-xs font-semibold">Master Admin Passcode *</Label>
+                    <Input
+                      id="reg-key"
+                      type="password"
+                      placeholder="Enter Master Security Key (HOBO_ADMIN_2026)"
+                      value={adminMasterKey}
+                      onChange={e => setAdminMasterKey(e.target.value)}
+                      required
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loadingAction === 'register'} 
+                    className="w-full py-5 text-xs font-semibold mt-2 shadow-md"
+                  >
+                    {loadingAction === 'register' && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Admin Account
+                  </Button>
+                </form>
+              )}
+
+              {/* Mode 3: Promote Logged-in User Account */}
+              {authMode === 'promote' && user && (
+                <form onSubmit={handlePromoteCurrentAccount} className="space-y-3 pt-2">
+                  <div className="p-3 bg-muted/40 rounded-lg text-xs space-y-1 border">
+                    <p className="font-semibold text-foreground">Current Active Session:</p>
+                    <p className="text-muted-foreground">{user.email}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="promote-key" className="text-xs font-semibold">Master Admin Passcode *</Label>
+                    <Input
+                      id="promote-key"
+                      type="password"
+                      placeholder="Enter Security Key (HOBO_ADMIN_2026)"
+                      value={adminMasterKey}
+                      onChange={e => setAdminMasterKey(e.target.value)}
+                      required
+                      className="h-10 text-xs"
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={loadingAction === 'promote'} 
+                    className="w-full py-5 text-xs font-semibold mt-2 shadow-md bg-rose-600 hover:bg-rose-700"
+                  >
+                    {loadingAction === 'promote' && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                    Promote Account to Permanent Admin
+                  </Button>
+                </form>
+              )}
             </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={handleDemoBypass} 
-                disabled={loadingAction === 'bypass'} 
-                className="w-full py-6 text-base font-semibold shadow-lg shadow-primary/20"
-              >
-                {loadingAction === 'bypass' && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-                Login as Admin (Demo Bypass)
-              </Button>
-            </CardFooter>
           </Card>
         </main>
         <Footer />
@@ -719,9 +945,29 @@ export default function AdminPanel() {
             </nav>
           </div>
 
-          <div className="px-6 text-[10px] text-muted-foreground space-y-1">
-            <p>Hobo Livings Console v1.0</p>
-            <p>Environment: DEVELOPMENT</p>
+          <div className="px-4 space-y-3">
+            <div className="p-3 bg-card border rounded-lg space-y-1 text-[11px]">
+              <div className="font-semibold text-foreground truncate flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span className="truncate">{user?.email || 'Admin Active'}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Permanent Administrator</p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAdminLogout}
+              className="w-full text-xs text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+            >
+              <LogOut className="mr-1.5 h-3.5 w-3.5" />
+              Sign Out Admin
+            </Button>
+
+            <div className="pt-2 text-[10px] text-muted-foreground space-y-0.5">
+              <p>Hobo Livings Console v1.0</p>
+              <p>Security Status: ENFORCED</p>
+            </div>
           </div>
         </aside>
 
