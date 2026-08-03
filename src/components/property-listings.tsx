@@ -11,6 +11,7 @@ import { Search } from 'lucide-react';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Skeleton } from './ui/skeleton';
+import DpiitCertificateModal from './dpiit-certificate-modal';
 
 export default function PropertyListings() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -106,6 +107,10 @@ export default function PropertyListings() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70"></div>
         <div className="relative z-10 container text-white px-4 max-w-4xl space-y-6">
+          <div className="flex justify-center pb-2">
+            <DpiitCertificateModal variant="badge" />
+          </div>
+
           <h1 className="font-headline text-4xl md:text-7xl font-extrabold tracking-tight drop-shadow-md">
             Affordable Living.<br className="md:hidden" />
             <span className="bg-gradient-to-r from-rose-400 via-pink-500 to-primary bg-clip-text text-transparent ml-2 drop-shadow-none">

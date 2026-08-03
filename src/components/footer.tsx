@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Home, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import DpiitCertificateModal from './dpiit-certificate-modal';
 
 export default function Footer() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -24,6 +25,12 @@ export default function Footer() {
             <p className="text-xs text-muted-foreground leading-relaxed">
               Hobo Livings Private Limited was incorporated in December 2021 to offer safe, verified, and affordable rental accommodation solutions across India.
             </p>
+            
+            {/* DPIIT Recognition Footer Trigger */}
+            <div className="pt-1">
+              <DpiitCertificateModal variant="footer" />
+            </div>
+
             <div className="space-y-2 text-xs text-muted-foreground pt-2">
               <div className="flex items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />

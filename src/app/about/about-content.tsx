@@ -7,6 +7,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { 
@@ -29,8 +30,10 @@ import {
   GraduationCap, 
   Briefcase, 
   Award,
-  DollarSign
+  DollarSign,
+  FileText
 } from 'lucide-react';
+import DpiitCertificateModal from '@/components/dpiit-certificate-modal';
 
 // Custom intersection observer element for premium scroll reveals
 function ScrollReveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
@@ -242,8 +245,57 @@ export default function AboutContent() {
           </div>
         </section>
 
+        {/* 1.5 Government Recognition & Accreditation Section */}
+        <section className="py-12 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-orange-500/10 border-y border-amber-500/20">
+          <div className="container px-4">
+            <div className="max-w-5xl mx-auto bg-card border border-amber-500/30 rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <ScrollReveal delay={100} className="lg:col-span-8 space-y-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="bg-amber-500 text-white font-bold text-xs uppercase px-3 py-1">
+                      Govt of India Endorsed
+                    </Badge>
+                    <Badge variant="outline" className="border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-semibold">
+                      #startupindia Recognized
+                    </Badge>
+                  </div>
+
+                  <h2 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                    Recognized Startup by DPIIT
+                  </h2>
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    <strong>Hobo Livings Private Limited</strong> is an officially recognized startup by the Department for Promotion of Industry and Internal Trade (DPIIT), Ministry of Commerce & Industry, Government of India under Certificate No: <strong className="text-foreground">DIPP104245</strong> (Real Estate & Housing Sector).
+                  </p>
+
+                  <div className="flex flex-wrap gap-4 text-xs font-semibold pt-2">
+                    <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-lg border">
+                      <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0" />
+                      <span>Cert: DIPP104245</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-lg border">
+                      <Award className="h-4 w-4 text-amber-600 shrink-0" />
+                      <span>Inc Date: 15-12-2021</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-lg border">
+                      <FileText className="h-4 w-4 text-amber-600 shrink-0" />
+                      <span>Valid Upto: 14-12-2031</span>
+                    </div>
+                  </div>
+                </ScrollReveal>
+
+                <ScrollReveal delay={250} className="lg:col-span-4 flex justify-center">
+                  <DpiitCertificateModal variant="card" className="w-full max-w-sm" />
+                </ScrollReveal>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 2. Company Story Section */}
-        <section className="py-20 bg-secondary/10 border-y">
+        <section className="py-20 bg-secondary/10 border-b">
           <div className="container px-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <ScrollReveal delay={100}>
@@ -724,14 +776,5 @@ export default function AboutContent() {
 
       <Footer />
     </div>
-  );
-}
-
-// Sub-components
-function Badge({ children, className = "", ...props }: React.HTMLAttributes<HTMLSpanElement>) {
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${className}`} {...props}>
-      {children}
-    </span>
   );
 }
