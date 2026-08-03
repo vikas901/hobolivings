@@ -8,6 +8,7 @@ import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { useAuth } from '@/context/auth-context';
 import { db, auth } from '@/lib/firebase';
+import { seedFirestoreDatabase } from '@/lib/seed-firestore';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -48,11 +49,13 @@ import {
 import { 
   ShieldCheck, 
   ShieldAlert,
+  Ban,
   Lock,
   LogOut,
   KeyRound,
   Users, 
   Building2, 
+  Database,
   CalendarDays, 
   IndianRupee, 
   ClipboardList, 
@@ -64,7 +67,6 @@ import {
   Download, 
   CheckCircle2, 
   XCircle, 
-  Ban, 
   Key,
   Unlock, 
   Search, 
@@ -505,6 +507,28 @@ export default function AdminPanel() {
     }
   };
 
+  const deletePropertyListing = async (propertyId: string) => {
+    if (!confirm("Are you sure you want to permanently delete this property listing?")) return;
+    setLoadingAction(`del-prop-${propertyId}`);
+    try {
+      await deleteDoc(doc(db, 'properties', propertyId));
+      setProperties(prev => prev.filter(p => p.id !== propertyId));
+      await writeAuditLog(`Permanently deleted property listing ID: ${propertyId}`, 'PROPERTY_LISTING', propertyId);
+      toast({
+        title: "Listing Deleted",
+        description: "Property document has been permanently removed from database.",
+      });
+    } catch (e: any) {
+      toast({
+        variant: 'destructive',
+        title: "Delete Failed",
+        description: e.message || "Failed to delete property document.",
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   // 3. User Suspension / Management
   const toggleUserSuspension = async (userId: string, isCurrentlySuspended: boolean) => {
     setLoadingAction(`suspend-${userId}`);
@@ -529,6 +553,33 @@ export default function AdminPanel() {
       });
     } catch (e) {
       setUsers(prev => prev.map(u => u.uid === userId ? { ...u, isSuspended: nextStatus } as any : u));
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  // 3.5. Booking Status & Payment Moderation
+  const updateBookingStatus = async (bookingId: string, status: 'Confirmed' | 'Cancelled' | 'Pending', paymentStatus: 'Paid' | 'Pending' | 'Refunded') => {
+    setLoadingAction(`booking-${bookingId}`);
+    try {
+      await setDoc(doc(db, 'bookings', bookingId), {
+        status,
+        paymentStatus
+      }, { merge: true });
+
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status, paymentStatus } : b));
+      await writeAuditLog(`Updated booking reservation status to ${status} (${paymentStatus}).`, 'BOOKING', bookingId);
+      
+      toast({
+        title: "Booking Updated",
+        description: `Reservation status updated to ${status} (${paymentStatus}).`,
+      });
+    } catch (e: any) {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status, paymentStatus } : b));
+      toast({
+        title: "Local State Updated",
+        description: `Booking updated in local memory state.`,
+      });
     } finally {
       setLoadingAction(null);
     }
@@ -661,6 +712,36 @@ export default function AdminPanel() {
     setAmenities(prev => [...prev, newAmenity.trim()]);
     setNewAmenity('');
     toast({ title: "Amenity Added", description: `Added ${newAmenity} to master list.` });
+  };
+
+  const handleSeedDatabase = async () => {
+    setLoadingAction('seeding');
+    try {
+      const res = await seedFirestoreDatabase();
+      if (res.success) {
+        toast({
+          title: "Database Re-seeded Successfully",
+          description: res.message
+        });
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        toast({
+          title: "Seeding Failed",
+          description: res.message,
+          variant: "destructive"
+        });
+      }
+    } catch (e: any) {
+      toast({
+        title: "Seeding Error",
+        description: e.message || "An unexpected error occurred while seeding.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
   // Calculations for dashboard indicators
@@ -1300,55 +1381,40 @@ export default function AdminPanel() {
                         <span className="text-muted-foreground">Starting Rent:</span>
                         <span className="font-bold text-foreground text-sm">₹{prop.price.toLocaleString()}/mo</span>
                       </div>
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {prop.amenities?.map((a, i) => (
-                          <span key={i} className="text-[10px] bg-secondary px-2 py-0.5 rounded text-muted-foreground">{a}</span>
-                        ))}
-                      </div>
                     </CardContent>
 
-                    <CardFooter className="bg-secondary/15 border-t p-3 flex justify-end gap-2">
-                      {prop.status === 'pending' && (
-                        <>
+                    <CardFooter className="bg-secondary/15 border-t p-3 flex justify-between items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deletePropertyListing(prop.id)}
+                        disabled={loadingAction === `del-prop-${prop.id}`}
+                        className="text-xs text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/40 px-2.5"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                      </Button>
+
+                      <div className="flex items-center gap-2">
+                        {prop.status !== 'approved' && (
                           <Button 
                             size="sm" 
                             onClick={() => handleOpenRemarksModal('property', prop.id, 'approved')}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3"
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Approve Listing
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Approve
                           </Button>
+                        )}
+                        {prop.status !== 'rejected' && (
                           <Button 
                             size="sm" 
                             variant="destructive"
                             onClick={() => handleOpenRemarksModal('property', prop.id, 'rejected')}
                             className="text-xs px-3"
                           >
-                            <XCircle className="h-3.5 w-3.5 mr-1" /> Reject Listing
+                            <Ban className="h-3.5 w-3.5 mr-1" /> Deactivate
                           </Button>
-                        </>
-                      )}
-                      
-                      {prop.status === 'approved' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleOpenRemarksModal('property', prop.id, 'rejected')}
-                          className="text-xs border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                        >
-                          <Ban className="h-3.5 w-3.5 mr-1" /> Deactivate
-                        </Button>
-                      )}
-
-                      {prop.status === 'rejected' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleOpenRemarksModal('property', prop.id, 'approved')}
-                          className="text-xs border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Activate
-                        </Button>
-                      )}
+                        )}
+                      </div>
                     </CardFooter>
                   </Card>
                 ))}
@@ -1417,20 +1483,29 @@ export default function AdminPanel() {
                               </Badge>
                             </td>
                             <td className="p-4 text-right">
-                              {b.status !== 'Cancelled' && (
-                                <Button 
-                                  size="sm" 
-                                  variant="destructive" 
-                                  onClick={() => {
-                                    setBookings(prev => prev.map(bk => bk.id === b.id ? { ...bk, status: 'Cancelled', paymentStatus: 'Refunded' } : bk));
-                                    writeAuditLog(`Cancelled booking reservation and initiated refund.`, 'BOOKING', b.id);
-                                    toast({ title: "Booking Cancelled", description: "Tokens set to refunded status." });
-                                  }}
-                                  className="text-[10px] px-2 py-1 h-auto"
-                                >
-                                  Cancel & Refund
-                                </Button>
-                              )}
+                              <div className="flex justify-end items-center gap-1.5">
+                                {b.status === 'Pending' && (
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => updateBookingStatus(b.id, 'Confirmed', 'Paid')}
+                                    disabled={loadingAction === `booking-${b.id}`}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2.5 py-1 h-auto font-semibold shadow-sm"
+                                  >
+                                    <CheckCircle2 className="h-3 w-3 mr-1" /> Confirm
+                                  </Button>
+                                )}
+                                {b.status !== 'Cancelled' && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive" 
+                                    onClick={() => updateBookingStatus(b.id, 'Cancelled', 'Refunded')}
+                                    disabled={loadingAction === `booking-${b.id}`}
+                                    className="text-[10px] px-2 py-1 h-auto font-semibold"
+                                  >
+                                    <XCircle className="h-3 w-3 mr-1" /> Cancel & Refund
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1552,65 +1627,12 @@ export default function AdminPanel() {
 
               {/* Tickets directory */}
               <div className="grid grid-cols-1 gap-6">
-                {tickets.map((t, idx) => {
-                  const [replyMsg, setReplyMsg] = useState('');
-                  return (
-                    <Card key={idx} className="border shadow-sm overflow-hidden">
-                      <CardHeader className="bg-secondary/10 border-b p-4 flex flex-row items-center justify-between">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-headline font-bold text-sm text-foreground">{t.subject}</h3>
-                            <Badge variant={t.status === 'Open' ? 'destructive' : 'default'} className="text-[10px]">
-                              {t.status}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">By: {t.userName} ({t.userEmail})</p>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</span>
-                      </CardHeader>
-                      
-                      <CardContent className="p-4 space-y-4">
-                        <div className="p-3 bg-muted/30 rounded border text-xs leading-relaxed text-foreground">
-                          {t.message}
-                        </div>
-
-                        {/* Thread responses */}
-                        {t.replies && t.replies.length > 0 && (
-                          <div className="space-y-2.5 pl-4 border-l-2 border-primary/20">
-                            {t.replies.map((rep, index) => (
-                              <div key={index} className="text-xs bg-secondary/20 p-2.5 rounded border">
-                                <p className="font-bold text-[10px] text-primary">{rep.author}</p>
-                                <p className="mt-1 text-muted-foreground">{rep.message}</p>
-                                <span className="text-[9px] text-muted-foreground/60">{new Date(rep.timestamp).toLocaleTimeString()}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {t.status === 'Open' && (
-                          <div className="space-y-2 pt-2 border-t">
-                            <Label className="text-[10px] text-muted-foreground uppercase font-bold">Write response reply</Label>
-                            <div className="flex gap-2">
-                              <Input 
-                                placeholder="Write response to resident..."
-                                value={replyMsg}
-                                onChange={e => setReplyMsg(e.target.value)}
-                                className="bg-background"
-                              />
-                              <Button 
-                                size="sm" 
-                                onClick={() => replyToSupportTicket(t.id, replyMsg)}
-                                className="px-4 text-xs font-semibold"
-                              >
-                                Send Reply
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {tickets.map((t) => (
+                  <SupportTicketCardItem key={t.id} ticket={t} onReply={replyToSupportTicket} />
+                ))}
+                {tickets.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">No support tickets or complaints submitted yet.</div>
+                )}
               </div>
             </div>
           )}
@@ -1741,6 +1763,50 @@ export default function AdminPanel() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Database Maintenance & Re-seeding Card */}
+                <Card className="border border-rose-500/20 shadow-sm md:col-span-2 bg-gradient-to-br from-rose-500/5 via-transparent to-transparent">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-base font-headline font-semibold flex items-center gap-2">
+                          <Database className="h-4 w-4 text-rose-600" />
+                          Database Reset & Listing Seeder
+                        </CardTitle>
+                        <CardDescription>
+                          Purge old placeholder properties in Firestore and seed 24 high-resolution realistic listings for Delhi, Noida, Greater Noida, Gurgaon, Ghaziabad, and Faridabad (Hostel, PG, Room, Hotel).
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold">Comprehensive 6-City Database Coverage</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Seeds 24 real listings with high-resolution interior/exterior photos across Delhi NCR (Delhi, Noida, Greater Noida, Gurgaon, Ghaziabad, Faridabad) covering Hostel, PG, Room, and Hotel categories.
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={handleSeedDatabase}
+                        disabled={loadingAction === 'seeding'}
+                        className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-5 py-2 shrink-0 shadow-md"
+                      >
+                        {loadingAction === 'seeding' ? (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                            Seeding Database...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Purge & Re-seed 24 City Listings
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           )}
@@ -1838,5 +1904,70 @@ export default function AdminPanel() {
 
       <Footer />
     </div>
+  );
+}
+
+function SupportTicketCardItem({ ticket, onReply }: { ticket: SupportTicket; onReply: (id: string, msg: string) => void }) {
+  const [replyMsg, setReplyMsg] = useState('');
+
+  return (
+    <Card className="border shadow-sm overflow-hidden">
+      <CardHeader className="bg-secondary/10 border-b p-4 flex flex-row items-center justify-between">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <h3 className="font-headline font-bold text-sm text-foreground">{ticket.subject}</h3>
+            <Badge variant={ticket.status === 'Open' ? 'destructive' : 'default'} className="text-[10px]">
+              {ticket.status}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">By: {ticket.userName} ({ticket.userEmail})</p>
+        </div>
+        <span className="text-[10px] text-muted-foreground">{new Date(ticket.createdAt).toLocaleDateString()}</span>
+      </CardHeader>
+      
+      <CardContent className="p-4 space-y-4">
+        <div className="p-3 bg-muted/30 rounded border text-xs leading-relaxed text-foreground">
+          {ticket.message}
+        </div>
+
+        {ticket.replies && ticket.replies.length > 0 && (
+          <div className="space-y-2.5 pl-4 border-l-2 border-primary/20">
+            {ticket.replies.map((rep, index) => (
+              <div key={index} className="text-xs bg-secondary/20 p-2.5 rounded border">
+                <p className="font-bold text-[10px] text-primary">{rep.author}</p>
+                <p className="mt-1 text-muted-foreground">{rep.message}</p>
+                <span className="text-[9px] text-muted-foreground/60">{new Date(rep.timestamp).toLocaleTimeString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {ticket.status === 'Open' && (
+          <div className="space-y-2 pt-2 border-t">
+            <Label className="text-[10px] text-muted-foreground uppercase font-bold">Write response reply</Label>
+            <div className="flex gap-2">
+              <Input 
+                placeholder="Write response to resident..."
+                value={replyMsg}
+                onChange={e => setReplyMsg(e.target.value)}
+                className="bg-background"
+              />
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  if (replyMsg.trim()) {
+                    onReply(ticket.id, replyMsg);
+                    setReplyMsg('');
+                  }
+                }}
+                className="px-4 text-xs font-semibold"
+              >
+                Send Reply
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

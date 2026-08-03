@@ -12,6 +12,7 @@ import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore
 import { db } from '@/lib/firebase';
 import { Skeleton } from './ui/skeleton';
 import DpiitCertificateModal from './dpiit-certificate-modal';
+import { properties as defaultProperties } from '@/lib/dummy-data';
 
 export default function PropertyListings() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -46,9 +47,9 @@ export default function PropertyListings() {
             return null;
           }
           
-          const imageUrl = (data.images && data.images.length > 0 && typeof data.images[0] === 'string' && data.images[0].startsWith('https://res.cloudinary.com')) 
+          const imageUrl = (data.images && data.images.length > 0 && typeof data.images[0] === 'string' && !data.images[0].includes('placehold.co')) 
             ? data.images[0] 
-            : 'https://placehold.co/600x400.png';
+            : (data.image && !data.image.includes('placehold.co') ? data.image : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&q=80&w=800');
 
           let createdAt: number;
           if (data.createdAt && data.createdAt instanceof Timestamp) {
@@ -63,7 +64,7 @@ export default function PropertyListings() {
               id: doc.id,
               title: data.title,
               image: imageUrl,
-              images: data.images || [imageUrl],
+              images: (data.images && data.images.length > 0) ? data.images.map((img: string) => img.includes('placehold.co') ? imageUrl : img) : [imageUrl],
               dataAiHint: data.dataAiHint || 'property exterior',
               price: data.price,
               location: data.location,
@@ -83,9 +84,14 @@ export default function PropertyListings() {
             } as Property;
         }).filter((p): p is Property => p !== null);
 
-        setProperties(fetchedProperties);
+        if (fetchedProperties.length > 0) {
+          setProperties(fetchedProperties);
+        } else {
+          setProperties(defaultProperties);
+        }
       } catch (error) {
-        console.error("Error fetching properties:", error);
+        console.error("Error fetching properties, using fallback listings:", error);
+        setProperties(defaultProperties);
       } finally {
         setLoading(false);
       }
