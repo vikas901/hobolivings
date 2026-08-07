@@ -38,11 +38,12 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
-                <a href="mailto:support@hobolivings.com" className="hover:underline">support@hobolivings.com</a>
+                <a href="mailto:livingshobo@gmail.com" className="hover:underline">livingshobo@gmail.com</a>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
-                <a href="tel:+919999999999" className="hover:underline">+91 99999 99999</a>
+                <a href="tel:+918920642742" className="hover:underline">+91 89206 42742</a>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-600 px-1.5 py-0.5 rounded font-semibold">WhatsApp</span>
               </div>
             </div>
           </div>
@@ -55,16 +56,16 @@ export default function Footer() {
                 <Link href="/about" className="hover:text-primary transition-colors">About Us</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors flex items-center gap-1.5">
+                <Link href="/careers" className="hover:text-primary transition-colors flex items-center gap-1.5">
                   Careers 
                   <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[9px] font-bold">Hiring</span>
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors">FAQs</Link>
+                <Link href="/faqs" className="hover:text-primary transition-colors">FAQs</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors">Contact Us</Link>
+                <Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link>
               </li>
             </ul>
           </div>
@@ -83,7 +84,7 @@ export default function Footer() {
                 <Link href="/become-landlord" className="hover:text-primary transition-colors">Become a Host</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-primary transition-colors">Corporate Solutions</Link>
+                <Link href="/contact" className="hover:text-primary transition-colors">Corporate Solutions</Link>
               </li>
             </ul>
           </div>
@@ -91,16 +92,16 @@ export default function Footer() {
           {/* Column 4: Legal & Social */}
           <div className="space-y-4">
             <div className="space-y-3">
-              <h3 className="font-headline font-bold text-sm text-foreground">Legal</h3>
+              <h3 className="font-headline font-bold text-sm text-foreground">Legal & Policies</h3>
               <ul className="space-y-2 text-xs text-muted-foreground">
                 <li>
-                  <Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link>
+                  <Link href="/faqs" className="hover:text-primary transition-colors">Booking & Visit Policy</Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-primary transition-colors">Privacy Policy</Link>
+                  <Link href="/about" className="hover:text-primary transition-colors">Zero Brokerage Terms</Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-primary transition-colors">Booking Policy</Link>
+                  <Link href="/contact" className="hover:text-primary transition-colors">Student Safety & Privacy</Link>
                 </li>
               </ul>
             </div>

@@ -71,7 +71,7 @@ export default function ContactContent() {
               </div>
               <div className="space-y-0.5">
                 <h4 className="font-semibold text-sm">Support Email</h4>
-                <a href="mailto:support@hobolivings.com" className="text-xs text-primary hover:underline">support@hobolivings.com</a>
+                <a href="mailto:livingshobo@gmail.com" className="text-xs text-primary hover:underline">livingshobo@gmail.com</a>
               </div>
             </div>
 
@@ -80,8 +80,18 @@ export default function ContactContent() {
                 <Phone className="h-5 w-5" />
               </div>
               <div className="space-y-0.5">
-                <h4 className="font-semibold text-sm">Telephone Hotline</h4>
-                <a href="tel:+919999999999" className="text-xs text-muted-foreground hover:text-primary transition-colors">+91 99999 99999</a>
+                <h4 className="font-semibold text-sm">Direct Phone & WhatsApp</h4>
+                <div className="flex items-center gap-2">
+                  <a href="tel:+918920642742" className="text-xs text-muted-foreground hover:text-primary transition-colors">+91 89206 42742</a>
+                  <a 
+                    href="https://wa.me/918920642742" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[10px] bg-emerald-500 text-white font-semibold px-2 py-0.5 rounded hover:bg-emerald-600 transition-colors"
+                  >
+                    Chat on WhatsApp
+                  </a>
+                </div>
               </div>
             </div>
           </div>

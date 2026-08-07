@@ -97,6 +97,16 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
           <MapPin className="h-4 w-4 mr-1 shrink-0" />
           <span className="line-clamp-1">{property.location || 'Location'}, {property.city || 'City'}</span>
         </div>
+
+        {/* Zero Brokerage & Free Visit Trust Pill */}
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+          <span className="inline-flex items-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+            ✓ Zero Brokerage
+          </span>
+          <span className="inline-flex items-center text-[11px] font-medium text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+            🗓️ Free Visit
+          </span>
+        </div>
         <div className="flex justify-between items-center mb-4">
            <div className="flex items-center gap-2">
             {safeAmenities.slice(0, 4).map((amenity) => (

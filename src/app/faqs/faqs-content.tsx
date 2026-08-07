@@ -59,7 +59,7 @@ export default function FaqsContent({ faqsList }: { faqsList: FaqItem[] }) {
 
         {filteredFaqs.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            No FAQs matching "{searchTerm}" found. Try another term or write to support@hobolivings.com.
+            No FAQs matching "{searchTerm}" found. Try another term or write to livingshobo@gmail.com.
           </div>
         )}
       </section>

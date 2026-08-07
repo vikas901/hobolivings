@@ -98,3 +98,41 @@ export interface UserProfile {
     address?: string;
     companyType?: 'individual' | 'company';
 }
+
+export type BookingType = 'free_visit' | 'bed_hold' | 'inquiry';
+export type BookingStatus = 'Visit Scheduled' | 'Bed Held (48h)' | 'Visited' | 'Move-in Finalized' | 'Cancelled';
+export type VisitTimeSlot = 'Morning (10:00 AM - 1:00 PM)' | 'Afternoon (2:00 PM - 5:00 PM)' | 'Evening (5:00 PM - 8:00 PM)';
+export type MoveInTimeline = 'Immediate' | 'Within 7 Days' | 'Next 2 Weeks' | 'Next Month';
+
+export interface Booking {
+  id?: string;
+  bookingType: BookingType;
+  status: BookingStatus;
+  
+  // Property Info
+  propertyId: string;
+  propertyTitle: string;
+  propertyLocation: string;
+  propertyCity?: string;
+  propertyImage?: string;
+  occupancy: 'Single' | 'Double' | 'Triple';
+  price: number;
+
+  // Tenant / Visitor Info
+  tenantId?: string;
+  tenantName: string;
+  tenantPhone: string;
+  tenantEmail?: string;
+  tenantCollegeOrWork?: string;
+  
+  // Visit & Timeline details
+  visitDate?: string;
+  visitTimeSlot?: VisitTimeSlot;
+  moveInTimeline?: MoveInTimeline;
+  specialRequests?: string;
+
+  // Timestamps
+  createdAt: string | number;
+  updatedAt?: string | number;
+  bedHoldExpiresAt?: string;
+}

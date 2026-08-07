@@ -34,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { 
   LineChart, 
   Line, 
@@ -112,17 +113,26 @@ interface SupportTicket {
 // Booking structure
 interface AdminBooking {
   id: string;
-  tenantId: string;
+  bookingType?: 'free_visit' | 'bed_hold' | 'inquiry';
+  tenantId?: string;
   tenantName: string;
-  tenantEmail: string;
+  tenantEmail?: string;
+  tenantPhone?: string;
+  tenantCollegeOrWork?: string;
   propertyId: string;
   propertyTitle: string;
-  propertyCity: string;
+  propertyLocation?: string;
+  propertyCity?: string;
   price: number;
   occupancy: string;
-  status: 'Pending' | 'Confirmed' | 'Cancelled';
-  paymentStatus: 'Paid' | 'Pending' | 'Refunded';
-  bookingDate: number;
+  status: string; // 'Visit Scheduled' | 'Bed Held (48h)' | 'Visited' | 'Move-in Finalized' | 'Cancelled' | 'Confirmed' | 'Pending'
+  paymentStatus?: 'Paid' | 'Pending' | 'Refunded';
+  bookingDate?: number;
+  visitDate?: string;
+  visitTimeSlot?: string;
+  moveInTimeline?: string;
+  specialRequests?: string;
+  createdAt?: string | number;
 }
 
 export default function AdminPanel() {
@@ -198,32 +208,66 @@ export default function AdminPanel() {
         if (bookingSnapshot.empty) {
           const mockBookings: AdminBooking[] = [
             {
-              id: 'book1',
+              id: 'HL-VISIT-849201',
+              bookingType: 'free_visit',
               tenantId: 'tenant1',
-              tenantName: 'Aryan Kapoor',
-              tenantEmail: 'aryan@gmail.com',
+              tenantName: 'Rahul Sharma',
+              tenantPhone: '9876543210',
+              tenantEmail: 'rahul.sharma@gmail.com',
+              tenantCollegeOrWork: 'Amity University Sector 125',
               propertyId: fetchedProps[0]?.id || 'prop1',
               propertyTitle: fetchedProps[0]?.title || 'Modern Boys Hostel Sector 62',
+              propertyLocation: 'Sector 62',
               propertyCity: fetchedProps[0]?.city || 'Noida',
               price: fetchedProps[0]?.price || 12000,
               occupancy: 'Double',
-              status: 'Confirmed',
-              paymentStatus: 'Paid',
-              bookingDate: Date.now() - 86400000 * 5
+              status: 'Visit Scheduled',
+              visitDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+              visitTimeSlot: 'Evening (5:00 PM - 8:00 PM)',
+              moveInTimeline: 'Immediate',
+              specialRequests: 'Need AC room near elevator',
+              bookingDate: Date.now() - 3600000 * 4
             },
             {
-              id: 'book2',
+              id: 'HL-HOLD-720194',
+              bookingType: 'bed_hold',
               tenantId: 'tenant2',
-              tenantName: 'Meera Nair',
-              tenantEmail: 'meera@yahoo.com',
+              tenantName: 'Priya Patel',
+              tenantPhone: '9812345678',
+              tenantEmail: 'priya.patel@gmail.com',
+              tenantCollegeOrWork: 'Jaypee Institute of Information Tech',
               propertyId: fetchedProps[1]?.id || 'prop2',
               propertyTitle: fetchedProps[1]?.title || 'Secure Girls PG KP III',
+              propertyLocation: 'Knowledge Park III',
               propertyCity: fetchedProps[1]?.city || 'Greater Noida',
               price: fetchedProps[1]?.price || 9500,
-              occupancy: 'Triple',
-              status: 'Pending',
-              paymentStatus: 'Pending',
-              bookingDate: Date.now() - 86400000 * 2
+              occupancy: 'Single',
+              status: 'Bed Held (48h)',
+              visitDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+              visitTimeSlot: 'Morning (10:00 AM - 1:00 PM)',
+              moveInTimeline: 'Within 7 Days',
+              specialRequests: 'Prefer vegetarian food only',
+              bookingDate: Date.now() - 3600000 * 18
+            },
+            {
+              id: 'HL-VISIT-654321',
+              bookingType: 'free_visit',
+              tenantId: 'tenant3',
+              tenantName: 'Aryan Kapoor',
+              tenantPhone: '9898989898',
+              tenantEmail: 'aryan.k@gmail.com',
+              tenantCollegeOrWork: 'NIET Greater Noida',
+              propertyId: fetchedProps[0]?.id || 'prop1',
+              propertyTitle: fetchedProps[0]?.title || 'Modern Boys Hostel Sector 62',
+              propertyLocation: 'Sector 62',
+              propertyCity: fetchedProps[0]?.city || 'Noida',
+              price: fetchedProps[0]?.price || 12000,
+              occupancy: 'Double',
+              status: 'Move-in Finalized',
+              visitDate: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0],
+              visitTimeSlot: 'Afternoon (2:00 PM - 5:00 PM)',
+              moveInTimeline: 'Immediate',
+              bookingDate: Date.now() - 86400000 * 4
             }
           ];
           setBookings(mockBookings);
@@ -558,8 +602,8 @@ export default function AdminPanel() {
     }
   };
 
-  // 3.5. Booking Status & Payment Moderation
-  const updateBookingStatus = async (bookingId: string, status: 'Confirmed' | 'Cancelled' | 'Pending', paymentStatus: 'Paid' | 'Pending' | 'Refunded') => {
+  // 3.5. Booking Status & Moderation
+  const updateBookingStatus = async (bookingId: string, status: string, paymentStatus: 'Paid' | 'Pending' | 'Refunded' = 'Paid') => {
     setLoadingAction(`booking-${bookingId}`);
     try {
       await setDoc(doc(db, 'bookings', bookingId), {
@@ -568,11 +612,11 @@ export default function AdminPanel() {
       }, { merge: true });
 
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status, paymentStatus } : b));
-      await writeAuditLog(`Updated booking reservation status to ${status} (${paymentStatus}).`, 'BOOKING', bookingId);
+      await writeAuditLog(`Updated booking visit status to ${status}.`, 'BOOKING', bookingId);
       
       toast({
-        title: "Booking Updated",
-        description: `Reservation status updated to ${status} (${paymentStatus}).`,
+        title: "Status Updated",
+        description: `Visit/Booking status updated to ${status}.`,
       });
     } catch (e: any) {
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status, paymentStatus } : b));
@@ -1426,19 +1470,41 @@ export default function AdminPanel() {
             </div>
           )}
 
-          {/* TAB 4: BOOKING MANAGEMENT */}
+          {/* TAB 4: BOOKING & FREE VISIT OPERATIONS */}
           {activeTab === 'bookings' && (
             <div className="space-y-6">
-              <div className="flex justify-between items-center pb-2 border-b">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 pb-2 border-b">
                 <div>
-                  <h1 className="text-2xl font-headline font-bold">Booking operations</h1>
-                  <p className="text-xs text-muted-foreground">Monitor platform accommodation reservations, payments, and cancellations</p>
+                  <h1 className="text-2xl font-headline font-bold">Assisted Visit & Booking Pipeline</h1>
+                  <p className="text-xs text-muted-foreground">Manage zero-fee student visits, 48h bed reservations, and landlord handshakes</p>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleExportCSV('bookings')}>
                     <Download className="mr-1.5 h-3.5 w-3.5" /> Export CSV
                   </Button>
                 </div>
+              </div>
+
+              {/* Status Pipeline Filter Chips */}
+              <div className="flex flex-wrap gap-2 text-xs">
+                {['all', 'Visit Scheduled', 'Bed Held (48h)', 'Visited', 'Move-in Finalized', 'Cancelled'].map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setStatusFilter(st)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full font-semibold border transition-all",
+                      statusFilter === st
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-secondary/40 text-muted-foreground hover:bg-secondary border-border"
+                    )}
+                  >
+                    {st === 'all' ? 'All Visits & Bookings' : st} (
+                    {st === 'all'
+                      ? bookings.length
+                      : bookings.filter(b => b.status === st).length}
+                    )
+                  </button>
+                ))}
               </div>
 
               {/* Bookings Table */}
@@ -1448,69 +1514,160 @@ export default function AdminPanel() {
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
                         <tr className="border-b bg-secondary/30 text-muted-foreground font-semibold">
-                          <th className="p-4">Booking ID</th>
-                          <th className="p-4">Tenant</th>
-                          <th className="p-4">Property</th>
-                          <th className="p-4">Rent Price</th>
-                          <th className="p-4">Occupancy</th>
-                          <th className="p-4">Payment</th>
+                          <th className="p-4">Pass ID & Type</th>
+                          <th className="p-4">Visitor / Tenant</th>
+                          <th className="p-4">Property & Room</th>
+                          <th className="p-4">Visit Date & Slot</th>
+                          <th className="p-4">Monthly Rent</th>
                           <th className="p-4">Status</th>
-                          <th className="p-4 text-right">Actions</th>
+                          <th className="p-4 text-right">Concierge Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {bookings.map(b => (
-                          <tr key={b.id} className="border-b hover:bg-secondary/15">
-                            <td className="p-4 font-mono font-semibold">{b.id}</td>
-                            <td className="p-4">
-                              <div className="font-semibold">{b.tenantName}</div>
-                              <div className="text-[10px] text-muted-foreground">{b.tenantEmail}</div>
-                            </td>
-                            <td className="p-4 truncate max-w-[180px]">
-                              <div className="font-semibold">{b.propertyTitle}</div>
-                              <div className="text-[10px] text-muted-foreground">{b.propertyCity}</div>
-                            </td>
-                            <td className="p-4 font-semibold">₹{b.price.toLocaleString()}</td>
-                            <td className="p-4">{b.occupancy}</td>
-                            <td className="p-4">
-                              <Badge variant={b.paymentStatus === 'Paid' ? 'default' : b.paymentStatus === 'Refunded' ? 'secondary' : 'destructive'} className="text-[10px]">
-                                {b.paymentStatus}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <Badge variant={b.status === 'Confirmed' ? 'default' : b.status === 'Pending' ? 'secondary' : 'destructive'} className="text-[10px]">
-                                {b.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4 text-right">
-                              <div className="flex justify-end items-center gap-1.5">
-                                {b.status === 'Pending' && (
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => updateBookingStatus(b.id, 'Confirmed', 'Paid')}
-                                    disabled={loadingAction === `booking-${b.id}`}
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2.5 py-1 h-auto font-semibold shadow-sm"
+                        {bookings
+                          .filter(b => statusFilter === 'all' || b.status === statusFilter)
+                          .map(b => {
+                            const visitorPhoneClean = (b.tenantPhone || '9876543210').replace(/\D/g, '');
+                            const whatsappTenantMsg = encodeURIComponent(
+                              `Hi ${b.tenantName}! 👋 This is the Hobo Livings team regarding your scheduled visit for *${b.propertyTitle}* on *${b.visitDate || 'Tomorrow'} (${b.visitTimeSlot || 'Evening'})*.\n` +
+                              `Directions link: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(b.propertyTitle + ' ' + (b.propertyCity || 'Noida'))}\n` +
+                              `Will you be reaching on time?`
+                            );
+                            const whatsappTenantUrl = `https://wa.me/91${visitorPhoneClean}?text=${whatsappTenantMsg}`;
+
+                            return (
+                              <tr key={b.id} className="border-b hover:bg-secondary/15 transition-colors">
+                                <td className="p-4 font-mono">
+                                  <div className="font-bold text-foreground">{b.id}</div>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn(
+                                      "text-[10px] mt-1 font-sans",
+                                      b.bookingType === 'bed_hold'
+                                        ? "border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
+                                        : "border-blue-500/40 text-blue-600 dark:text-blue-400 bg-blue-500/10"
+                                    )}
                                   >
-                                    <CheckCircle2 className="h-3 w-3 mr-1" /> Confirm
-                                  </Button>
-                                )}
-                                {b.status !== 'Cancelled' && (
-                                  <Button 
-                                    size="sm" 
-                                    variant="destructive" 
-                                    onClick={() => updateBookingStatus(b.id, 'Cancelled', 'Refunded')}
-                                    disabled={loadingAction === `booking-${b.id}`}
-                                    className="text-[10px] px-2 py-1 h-auto font-semibold"
+                                    {b.bookingType === 'bed_hold' ? '🔒 48h Bed Hold' : '🗓️ Free Site Visit'}
+                                  </Badge>
+                                </td>
+                                
+                                <td className="p-4">
+                                  <div className="font-bold text-foreground text-sm">{b.tenantName}</div>
+                                  <div className="text-[11px] text-muted-foreground font-mono mt-0.5">📞 +91 {b.tenantPhone || 'N/A'}</div>
+                                  {b.tenantCollegeOrWork && (
+                                    <div className="text-[10px] text-primary/80 font-medium mt-0.5 truncate max-w-[160px]">
+                                      🎓 {b.tenantCollegeOrWork}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="p-4 truncate max-w-[200px]">
+                                  <div className="font-semibold text-foreground">{b.propertyTitle}</div>
+                                  <div className="text-[11px] text-muted-foreground">{b.propertyLocation || b.propertyCity || 'Noida'}</div>
+                                  <div className="text-[10px] text-primary font-medium mt-0.5">{b.occupancy} Sharing</div>
+                                </td>
+
+                                <td className="p-4">
+                                  <div className="font-semibold text-foreground">{b.visitDate || 'Tomorrow'}</div>
+                                  <div className="text-[10px] text-muted-foreground">{b.visitTimeSlot || 'Evening'}</div>
+                                  {b.moveInTimeline && (
+                                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                      Move-in: {b.moveInTimeline}
+                                    </div>
+                                  )}
+                                  {b.specialRequests && (
+                                    <div className="text-[10px] text-muted-foreground italic mt-0.5 truncate max-w-[140px]">
+                                      "{b.specialRequests}"
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="p-4">
+                                  <div className="font-bold text-sm text-foreground">₹{b.price?.toLocaleString()}</div>
+                                  <div className="text-[10px] text-emerald-600 font-semibold">Zero Commission</div>
+                                </td>
+
+                                <td className="p-4">
+                                  <Badge 
+                                    className={cn(
+                                      "text-[10px] font-semibold border",
+                                      b.status === 'Move-in Finalized'
+                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white border-transparent"
+                                        : b.status === 'Visited'
+                                        ? "bg-purple-600 hover:bg-purple-700 text-white border-transparent"
+                                        : b.status === 'Bed Held (48h)'
+                                        ? "bg-amber-500 hover:bg-amber-600 text-white border-transparent"
+                                        : b.status === 'Visit Scheduled'
+                                        ? "bg-blue-600 hover:bg-blue-700 text-white border-transparent"
+                                        : "bg-destructive text-destructive-foreground border-transparent"
+                                    )}
                                   >
-                                    <XCircle className="h-3 w-3 mr-1" /> Cancel & Refund
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                    {b.status}
+                                  </Badge>
+                                </td>
+
+                                <td className="p-4 text-right">
+                                  <div className="flex justify-end items-center gap-1.5 flex-wrap">
+                                    {/* 1-Tap WhatsApp to Tenant */}
+                                    <Button
+                                      asChild
+                                      size="sm"
+                                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] px-2 py-1 h-7 font-semibold"
+                                    >
+                                      <a href={whatsappTenantUrl} target="_blank" rel="noopener noreferrer">
+                                        💬 WhatsApp
+                                      </a>
+                                    </Button>
+
+                                    {/* Status transitions */}
+                                    {b.status === 'Visit Scheduled' && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={() => updateBookingStatus(b.id, 'Visited')}
+                                        disabled={loadingAction === `booking-${b.id}`}
+                                        className="text-[10px] px-2 py-1 h-7 font-semibold"
+                                      >
+                                        ✓ Visited
+                                      </Button>
+                                    )}
+
+                                    {b.status !== 'Move-in Finalized' && b.status !== 'Cancelled' && (
+                                      <Button 
+                                        size="sm" 
+                                        onClick={() => updateBookingStatus(b.id, 'Move-in Finalized')}
+                                        disabled={loadingAction === `booking-${b.id}`}
+                                        className="bg-primary hover:bg-primary/90 text-white text-[10px] px-2 py-1 h-7 font-semibold shadow-sm"
+                                      >
+                                        🎉 Finalized
+                                      </Button>
+                                    )}
+
+                                    {b.status !== 'Cancelled' && (
+                                      <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        onClick={() => updateBookingStatus(b.id, 'Cancelled')}
+                                        disabled={loadingAction === `booking-${b.id}`}
+                                        className="text-destructive hover:bg-destructive/10 text-[10px] px-2 py-1 h-7"
+                                      >
+                                        Cancel
+                                      </Button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
+
+                    {bookings.filter(b => statusFilter === 'all' || b.status === statusFilter).length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground text-xs">
+                        No bookings matching "{statusFilter}" found.
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

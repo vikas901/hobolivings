@@ -182,7 +182,7 @@ export function LoginContent() {
       if (intentStr) {
         try {
           const intent = JSON.parse(intentStr);
-          if (intent.intent === 'BOOK') {
+          if (intent.intent === 'BOOK' || intent.intent === 'SCHEDULE_VISIT') {
             redirectUrl = `/?action=book&propertyId=${intent.propertyId}`;
           } else if (intent.intent === 'SAVE_FAVORITE') {
             redirectUrl = `/?action=save&propertyId=${intent.propertyId}`;
@@ -368,7 +368,7 @@ export function LoginContent() {
       if (intentStr) {
         try {
           const intent = JSON.parse(intentStr);
-          if (intent.intent === 'BOOK') {
+          if (intent.intent === 'BOOK' || intent.intent === 'SCHEDULE_VISIT') {
             redirectUrl = `/?action=book&propertyId=${intent.propertyId}`;
           } else if (intent.intent === 'SAVE_FAVORITE') {
             redirectUrl = `/?action=save&propertyId=${intent.propertyId}`;
