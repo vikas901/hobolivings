@@ -28,13 +28,13 @@ export default function DpiitCertificateModal({ variant = 'badge', className = '
         {variant === 'badge' ? (
           <button 
             type="button" 
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-500/15 to-orange-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-300 hover:border-amber-500/60 transition-all text-xs font-semibold shadow-sm cursor-pointer ${className}`}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/85 hover:bg-slate-900 border border-amber-400/70 hover:border-amber-300 text-white backdrop-blur-md transition-all text-xs sm:text-sm font-semibold shadow-xl shadow-black/50 cursor-pointer group ${className}`}
           >
-            <ShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span className="font-bold">#startupindia</span>
-            <span className="text-muted-foreground">|</span>
-            <span className="truncate">DPIIT Recognized (Cert: DIPP104245)</span>
-            <ExternalLink className="h-3 w-3 text-amber-600/70 shrink-0 ml-0.5" />
+            <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="font-bold text-amber-300">#startupindia</span>
+            <span className="text-white/40 font-light">|</span>
+            <span className="text-white font-semibold">DPIIT Recognized (Cert: DIPP104245)</span>
+            <ExternalLink className="h-3.5 w-3.5 text-amber-400 shrink-0 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
           </button>
         ) : variant === 'button' ? (
           <Button 
@@ -48,9 +48,9 @@ export default function DpiitCertificateModal({ variant = 'badge', className = '
         ) : variant === 'footer' ? (
           <button 
             type="button" 
-            className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300 hover:underline cursor-pointer group"
+            className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline cursor-pointer group"
           >
-            <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0 group-hover:scale-110 transition-transform" />
+            <ShieldCheck className="h-4 w-4 text-amber-500 shrink-0 group-hover:scale-110 transition-transform" />
             <span>DPIIT Recognized Startup (Cert: DIPP104245)</span>
           </button>
         ) : (
