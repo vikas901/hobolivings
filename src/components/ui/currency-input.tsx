@@ -9,7 +9,8 @@ import { IndianRupee } from 'lucide-react';
  * e.g., 125000 → "1,25,000"
  */
 function formatIndianCurrency(value: number): string {
-  if (isNaN(value) || value === 0) return '';
+  if (isNaN(value)) return '0';
+  if (value === 0) return '0';
   const str = Math.floor(value).toString();
   // Indian system: last 3 digits, then groups of 2
   if (str.length <= 3) return str;

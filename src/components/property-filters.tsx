@@ -204,7 +204,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
         <div className="flex items-center justify-between">
           <Label className="font-semibold text-sm">Monthly Budget</Label>
           <span className="text-xs font-bold text-primary font-mono bg-primary/10 px-2 py-0.5 rounded">
-            ₹{formatIndianCurrency(priceRange[0])} – ₹{formatIndianCurrency(priceRange[1])}
+            ₹{(priceRange[0] ?? 0).toLocaleString('en-IN')} to ₹{(priceRange[1] ?? 0).toLocaleString('en-IN')}
           </span>
         </div>
 
@@ -249,7 +249,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
         </div>
         <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1 font-mono">
           <span>Min: ₹0</span>
-          <span>Max: ₹{formatIndianCurrency(maxPrice)}</span>
+          <span>Max: ₹{(maxPrice ?? 50000).toLocaleString('en-IN')}</span>
         </div>
       </div>
 
