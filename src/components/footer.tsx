@@ -126,10 +126,49 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Top Campus Hubs & Locality Keyword Links for Google SEO */}
+        <div className="mt-8 pt-6 border-t border-border/40 space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+            Popular Student & Campus Housing Hubs
+          </p>
+          <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Hostels in Knowledge Park 2
+            </Link>
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              PG near GL Bajaj Institute
+            </Link>
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Hostels near Galgotias University
+            </Link>
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Student Accommodation near Sharda University
+            </Link>
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              PG near NIET & Lloyd College
+            </Link>
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Accommodations in Pari Chowk & Alpha 1
+            </Link>
+            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Girls PG near Amity University Sector 125
+            </Link>
+            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Boys PG in Sector 62 Noida near JSS
+            </Link>
+            <Link href="/?category=Hostel" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Zero Brokerage Hostels Greater Noida
+            </Link>
+            <Link href="/?category=PG" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
+              Single & Double Room PGs Delhi NCR
+            </Link>
+          </div>
+        </div>
+
         {/* Bottom copyright */}
-        <div className="mt-10 pt-6 border-t border-border/40 text-center text-[11px] text-muted-foreground flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="mt-6 pt-6 border-t border-border/40 text-center text-[11px] text-muted-foreground flex flex-col sm:flex-row justify-between items-center gap-4">
           <p>&copy; {year} Hobo Livings Private Limited. All rights reserved.</p>
-          <p className="text-[10px]">CIN: U70109UP2021PTC156942</p>
+          <p className="text-[10px]">CIN: U70109UP2021PTC156942 | Knowledge Park, Greater Noida</p>
         </div>
       </div>
     </footer>
