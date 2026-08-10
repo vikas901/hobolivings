@@ -77,6 +77,14 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     type: 'website',
   },
+  icons: {
+    icon: [
+      { url: '/logo.png', sizes: 'any' },
+      { url: '/favicon.ico' }
+    ],
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'Hobo Livings | Student Hostels & PGs in Greater Noida',
@@ -124,6 +132,7 @@ const jsonLdWebsite = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'Hobo Livings',
+  alternateName: ['Hobo Livings', 'Hobo Living', 'HoboLivings', 'Hobo Livings Private Limited'],
   url: SITE_URL,
   potentialAction: {
     '@type': 'SearchAction',
