@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'google-site-verification-placeholder',
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'googleb1e7941b332ec6fa',
   },
   openGraph: {
     title: 'Hobo Livings | Verified Student Hostels & PGs in Greater Noida & Noida',
