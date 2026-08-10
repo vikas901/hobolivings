@@ -87,9 +87,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import type { Property, UserProfile, Booking } from '@/lib/types';
+import { 
+  CITY_CLUSTERS, 
+  generateCityProperties, 
+  ingestPropertiesToFirestore, 
+  parseScrapedCsv,
+  type DiscoveryOptions 
+} from '@/lib/city-scraper-engine';
 
 // Tab enum definitions
-type AdminTab = 'dashboard' | 'kyc' | 'properties' | 'bookings' | 'users' | 'support' | 'content' | 'masterdata' | 'audit';
+type AdminTab = 'dashboard' | 'kyc' | 'properties' | 'bookings' | 'users' | 'support' | 'content' | 'masterdata' | 'audit' | 'scraper';
 
 // Audit log structure
 interface AuditLog {
@@ -151,6 +158,97 @@ export default function AdminDashboardPage() {
 
   // Selected booking detail modal state
   const [selectedBookingModal, setSelectedBookingModal] = useState<Booking | null>(null);
+
+  // City Scraper & Ingestion state
+  const [scraperCity, setScraperCity] = useState<string>('Greater Noida');
+  const [scraperCluster, setScraperCluster] = useState<string>('Knowledge Park 2 (GL Bajaj, Galgotias, NIET)');
+  const [scraperCategory, setScraperCategory] = useState<'Hostel' | 'PG' | 'all'>('all');
+  const [scraperGender, setScraperGender] = useState<'Boys' | 'Girls' | 'Co-ed' | 'all'>('all');
+  const [scraperCount, setScraperCount] = useState<number>(10);
+  const [discoveredProperties, setDiscoveredProperties] = useState<Property[]>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [isIngesting, setIsIngesting] = useState(false);
+  const [csvInputText, setCsvInputText] = useState('');
+  const [showCsvModal, setShowCsvModal] = useState(false);
+  const [ingestSuccessMessage, setIngestSuccessMessage] = useState<string | null>(null);
+
+  // Run Discovery Handler
+  const handleRunCityDiscovery = () => {
+    setIsDiscovering(true);
+    setIngestSuccessMessage(null);
+    setTimeout(() => {
+      const generated = generateCityProperties({
+        city: scraperCity,
+        clusterName: scraperCluster,
+        category: scraperCategory,
+        gender: scraperGender,
+        count: scraperCount,
+      });
+      setDiscoveredProperties(generated);
+      setIsDiscovering(false);
+      toast({
+        title: "Properties Discovered",
+        description: `Discovered ${generated.length} listings in ${scraperCity}. Ready for review & live ingestion.`,
+      });
+    }, 500);
+  };
+
+  // Ingest Discovered Properties to Firestore
+  const handleIngestDiscoveredProperties = async () => {
+    if (discoveredProperties.length === 0) return;
+    setIsIngesting(true);
+    try {
+      const res = await ingestPropertiesToFirestore(discoveredProperties);
+      if (res.success) {
+        setProperties(prev => [...discoveredProperties, ...prev]);
+        setIngestSuccessMessage(`Successfully published ${res.count} properties into live Firestore database!`);
+        await writeAuditLog(
+          `Ingested ${res.count} properties for ${scraperCity} (${scraperCluster}).`, 
+          'SCRAPER_INGEST', 
+          `BATCH_${Date.now()}`
+        );
+        toast({
+          title: "Ingestion Complete 🚀",
+          description: `${res.count} properties are now live on Hobo Livings!`,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: "Ingestion Failed",
+          description: res.error,
+        });
+      }
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: "Ingestion Error",
+        description: err.message,
+      });
+    } finally {
+      setIsIngesting(false);
+    }
+  };
+
+  // CSV Ingestion Handler
+  const handleParseCsvInput = () => {
+    if (!csvInputText.trim()) return;
+    const parsed = parseScrapedCsv(csvInputText, scraperCity);
+    if (parsed.length > 0) {
+      setDiscoveredProperties(parsed);
+      setShowCsvModal(false);
+      setCsvInputText('');
+      toast({
+        title: "CSV Parsed Successfully",
+        description: `Loaded ${parsed.length} custom properties for ingestion review.`,
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: "Invalid CSV",
+        description: "Please check your CSV format and try again.",
+      });
+    }
+  };
 
   // Check admin authorization on load
   useEffect(() => {
@@ -725,8 +823,29 @@ export default function AdminDashboardPage() {
             
             {/* Group 1: Pipeline & Leads */}
             <div className="space-y-1.5">
-              <p className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Pipeline & Leads</p>
+              <p className="px-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Pipeline & Discovery</p>
               
+              <button
+                onClick={() => { setActiveTab('scraper'); setSearchTerm(''); }}
+                className={cn(
+                  "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all",
+                  activeTab === 'scraper'
+                    ? "bg-gradient-to-r from-primary via-rose-600 to-amber-600 text-white shadow-md shadow-primary/30"
+                    : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                )}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
+                  <span>City Scraper & Ingest</span>
+                </div>
+                <Badge className={cn(
+                  "text-[9px] px-1.5 py-0 font-bold",
+                  activeTab === 'scraper' ? "bg-white/20 text-white" : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                )}>
+                  AI AGENT
+                </Badge>
+              </button>
+
               <button
                 onClick={() => { setActiveTab('bookings'); setSearchTerm(''); setStatusFilter('all'); }}
                 className={cn(
@@ -904,6 +1023,385 @@ export default function AdminDashboardPage() {
         {/* RIGHT MAIN WORKSPACE CONTENT                                        */}
         {/* =================================================================== */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden bg-slate-950">
+
+          {/* ================================================================= */}
+          {/* VIEW: CITY SCRAPER & PROPTECH INGESTION ENGINE                    */}
+          {/* ================================================================= */}
+          {activeTab === 'scraper' && (
+            <div className="space-y-6">
+              
+              {/* Header Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h1 className="text-xl sm:text-2xl font-bold font-headline text-white">
+                      City Scraper & Ingestion Engine
+                    </h1>
+                    <Badge className="bg-gradient-to-r from-amber-500/20 to-primary/20 text-amber-300 border-amber-500/40 text-xs px-2 py-0.5 font-bold">
+                      PRO AGGREGATOR
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Auto-discover, normalize, and publish verified student hostels & PGs by city clusters in seconds.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => setShowCsvModal(true)}
+                    className="h-9 text-xs border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white"
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5 text-primary" /> Import Custom CSV/JSON
+                  </Button>
+
+                  {discoveredProperties.length > 0 && (
+                    <Button 
+                      size="sm" 
+                      onClick={handleIngestDiscoveredProperties}
+                      disabled={isIngesting}
+                      className="h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-900/30"
+                    >
+                      {isIngesting ? (
+                        <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                      )}
+                      Publish {discoveredProperties.length} to Live Site
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Success Banner */}
+              {ingestSuccessMessage && (
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-emerald-300 shadow-xl">
+                  <div className="flex items-center gap-2.5">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                    <div>
+                      <p className="font-bold text-white text-sm">{ingestSuccessMessage}</p>
+                      <p className="text-emerald-400/80">Properties are now searchable by students with zero commission.</p>
+                    </div>
+                  </div>
+                  <Button asChild size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white h-8 text-xs font-semibold shrink-0">
+                    <Link href="/" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> View on Live Homepage
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
+              {/* Scraper Control Deck Card */}
+              <Card className="bg-slate-900 border-slate-800 text-slate-100 shadow-2xl overflow-hidden">
+                <CardHeader className="bg-slate-950/60 border-b border-slate-800 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base font-bold text-white flex items-center gap-2">
+                        <Sliders className="h-4 w-4 text-primary" /> Discovery & Scrape Parameters
+                      </CardTitle>
+                      <CardDescription className="text-xs text-slate-400">
+                        Select your target city, student campus cluster, and accommodation types to discover.
+                      </CardDescription>
+                    </div>
+                    <Badge className="bg-slate-800 text-slate-300 border-slate-700 text-[10px]">
+                      Preset Hubs: {CITY_CLUSTERS.length} Cities
+                    </Badge>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-5 space-y-5">
+                  
+                  {/* Step 1: City Selector */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      1. Select Target City
+                    </Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                      {CITY_CLUSTERS.map(c => {
+                        const isSelected = scraperCity.toLowerCase() === c.city.toLowerCase();
+                        return (
+                          <button
+                            key={c.city}
+                            type="button"
+                            onClick={() => {
+                              setScraperCity(c.city);
+                              setScraperCluster(c.clusters[0].name);
+                            }}
+                            className={cn(
+                              "p-3 rounded-xl border text-left transition-all flex flex-col justify-between",
+                              isSelected 
+                                ? "bg-primary/20 border-primary text-white shadow-md shadow-primary/20" 
+                                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                            )}
+                          >
+                            <span className="font-bold text-xs block text-white">{c.city}</span>
+                            <span className="text-[10px] text-slate-500 mt-1">{c.clusters.length} Student Clusters</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Step 2: Locality / College Cluster Selector */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      2. Target University / Locality Cluster in {scraperCity}
+                    </Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(CITY_CLUSTERS.find(c => c.city.toLowerCase() === scraperCity.toLowerCase())?.clusters || []).map(cl => {
+                        const isSelected = scraperCluster === cl.name;
+                        return (
+                          <div
+                            key={cl.name}
+                            onClick={() => setScraperCluster(cl.name)}
+                            className={cn(
+                              "p-3.5 rounded-xl border cursor-pointer transition-all text-xs space-y-1.5",
+                              isSelected 
+                                ? "bg-slate-800 border-primary text-white shadow-md ring-1 ring-primary" 
+                                : "bg-slate-950/80 border-slate-800/80 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-white">{cl.name}</span>
+                              <span className="text-[10px] text-emerald-400 font-mono font-semibold">
+                                ₹{cl.priceRange.min.toLocaleString()} - ₹{cl.priceRange.max.toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 line-clamp-2">{cl.description}</p>
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {cl.landmarks.map((lm, idx) => (
+                                <span key={idx} className="bg-slate-900 text-slate-400 text-[10px] px-1.5 py-0.5 rounded border border-slate-800">
+                                  📍 {lm.name} ({lm.distance})
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Step 3: Filters (Category, Gender, Batch Size) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-800">
+                    
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-slate-300">Category Type</Label>
+                      <select
+                        value={scraperCategory}
+                        onChange={e => setScraperCategory(e.target.value as any)}
+                        className="w-full h-9 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs px-3 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="all">All (Hostels + PGs)</option>
+                        <option value="Hostel">Hostels Only</option>
+                        <option value="PG">PGs Only</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-slate-300">Target Gender</Label>
+                      <select
+                        value={scraperGender}
+                        onChange={e => setScraperGender(e.target.value as any)}
+                        className="w-full h-9 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs px-3 focus:ring-primary focus:outline-none"
+                      >
+                        <option value="all">All (Boys, Girls & Co-ed)</option>
+                        <option value="Boys">Boys Only</option>
+                        <option value="Girls">Girls Only</option>
+                        <option value="Co-ed">Co-ed Only</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-slate-300">Batch Discovery Count</Label>
+                      <select
+                        value={scraperCount}
+                        onChange={e => setScraperCount(Number(e.target.value))}
+                        className="w-full h-9 rounded-lg bg-slate-950 border border-slate-800 text-slate-100 text-xs px-3 focus:ring-primary focus:outline-none"
+                      >
+                        <option value={5}>5 Properties (Fast)</option>
+                        <option value={10}>10 Properties (Standard)</option>
+                        <option value={20}>20 Properties (Dense Hub)</option>
+                        <option value={30}>30 Properties (Full Coverage)</option>
+                      </select>
+                    </div>
+
+                  </div>
+
+                </CardContent>
+
+                <CardFooter className="bg-slate-950/80 border-t border-slate-800 p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <p className="text-[11px] text-slate-500">
+                    💡 Generates clean photo sets, realistic pricing tiers, amenities, and landmark proximities.
+                  </p>
+                  
+                  <Button
+                    onClick={handleRunCityDiscovery}
+                    disabled={isDiscovering}
+                    className="w-full sm:w-auto h-10 px-6 font-bold text-xs bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30"
+                  >
+                    {isDiscovering ? (
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-2 h-4 w-4 text-amber-300" />
+                    )}
+                    {isDiscovering ? 'Discovering Properties...' : `🚀 Discover ${scraperCount} Properties in ${scraperCity}`}
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* ============================================================= */}
+              {/* DISCOVERED PROPERTIES PREVIEW GRID                            */}
+              {/* ============================================================= */}
+              {discoveredProperties.length > 0 && (
+                <div className="space-y-4 pt-2">
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/90 p-4 rounded-2xl border border-slate-800">
+                    <div>
+                      <h2 className="text-base font-bold text-white flex items-center gap-2">
+                        <span>Discovered Properties Preview</span>
+                        <Badge className="bg-primary text-white text-xs">
+                          {discoveredProperties.length} Ready
+                        </Badge>
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Targeting: <strong className="text-slate-200">{scraperCity}</strong> — {scraperCluster}
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={handleIngestDiscoveredProperties}
+                      disabled={isIngesting}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-10 px-5 shadow-lg shadow-emerald-950"
+                    >
+                      {isIngesting ? (
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="mr-2 h-4 w-4" />
+                      )}
+                      ⚡ Publish All ({discoveredProperties.length}) to Live Database
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {discoveredProperties.map((p, idx) => (
+                      <Card key={idx} className="bg-slate-900 border-slate-800 text-slate-100 overflow-hidden shadow-xl flex flex-col justify-between">
+                        <div>
+                          <div className="relative h-44 w-full bg-slate-800">
+                            <Image
+                              src={p.image || '/placeholder.jpg'}
+                              alt={p.title}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                            />
+                            <div className="absolute top-2 left-2 flex gap-1.5">
+                              <Badge className="bg-slate-950/90 text-white border border-slate-700 text-[10px] font-bold">
+                                {p.type} • {p.category}
+                              </Badge>
+                            </div>
+                            <div className="absolute top-2 right-2">
+                              <Badge className="bg-emerald-950/90 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                                ⭐ {p.rating} ({p.reviews})
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <CardContent className="p-4 space-y-2.5">
+                            <div>
+                              <h3 className="font-bold text-sm text-white truncate" title={p.title}>{p.title}</h3>
+                              <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                                <span className="truncate">{p.location}, {p.city}</span>
+                              </p>
+                            </div>
+
+                            <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                              {p.description}
+                            </p>
+
+                            {/* Room Options */}
+                            <div className="p-2 bg-slate-950/80 rounded-lg border border-slate-800/80 space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sharing Tiers</p>
+                              <div className="flex flex-wrap gap-2 text-xs font-mono">
+                                {p.roomOptions?.map((ro, rIdx) => (
+                                  <span key={rIdx} className="text-slate-300">
+                                    <strong className="text-primary">{ro.occupancy}:</strong> ₹{ro.price.toLocaleString()}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Amenities */}
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {p.amenities?.slice(0, 5).map((am, aIdx) => (
+                                <span key={aIdx} className="bg-slate-800 text-slate-300 text-[10px] px-1.5 py-0.5 rounded border border-slate-700">
+                                  {am}
+                                </span>
+                              ))}
+                              {(p.amenities?.length || 0) > 5 && (
+                                <span className="text-[10px] text-slate-500 px-1 py-0.5">
+                                  +{p.amenities!.length - 5} more
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </div>
+
+                        <CardFooter className="bg-slate-950/60 border-t border-slate-800/80 p-3 flex justify-between items-center text-[11px]">
+                          <span className="text-emerald-400 font-bold">✓ ₹0 Commission</span>
+                          <span className="text-slate-500 font-mono text-[10px]">ID: {p.id?.substring(0, 16)}</span>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+
+                </div>
+              )}
+
+              {/* CSV Upload Dialog */}
+              {showCsvModal && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                  <Card className="max-w-lg w-full bg-slate-900 border-slate-800 text-slate-100 shadow-2xl">
+                    <CardHeader className="pb-3 border-b border-slate-800">
+                      <CardTitle className="text-base font-bold text-white flex items-center gap-2">
+                        <Download className="h-4 w-4 text-primary" /> Import Scraped CSV / JSON Export
+                      </CardTitle>
+                      <CardDescription className="text-xs text-slate-400">
+                        Paste data exported from Google Maps, Outscraper, or Apify to bulk load into Hobo Livings.
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="p-4 space-y-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-slate-300 font-semibold">Paste CSV Text</Label>
+                        <textarea
+                          rows={8}
+                          value={csvInputText}
+                          onChange={e => setCsvInputText(e.target.value)}
+                          placeholder="title, city, location, price, phone, image&#10;Stanza Living Knowledge Park, Greater Noida, Knowledge Park 2, 14000, 8920642742, https://...&#10;Shree Ram Boys PG, Noida, Sector 62, 12000, 8920642742, https://..."
+                          className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-xs font-mono focus:ring-primary focus:outline-none"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Supported columns: <code>title, city, location, price, phone, image</code>
+                      </p>
+                    </CardContent>
+
+                    <CardFooter className="p-4 border-t border-slate-800 flex justify-between">
+                      <Button variant="ghost" size="sm" onClick={() => setShowCsvModal(false)} className="text-xs text-slate-400">
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={handleParseCsvInput} className="bg-primary hover:bg-primary/90 text-white text-xs font-semibold">
+                        Parse & Load Properties
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+              )}
+
+            </div>
+          )}
 
           {/* ================================================================= */}
           {/* VIEW: BOOKINGS & ASSISTED VISITS PIPELINE                         */}
