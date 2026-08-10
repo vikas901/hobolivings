@@ -21,6 +21,7 @@ import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatIndianCurrency } from '@/components/ui/currency-input';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface PropertyFiltersProps {
   properties: Property[];
@@ -170,7 +171,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
     setSearchTerm('');
   };
 
-  const FiltersComponent = () => (
+  const renderFilterControls = (
     <div className="space-y-6">
       {/* Clear All Button */}
       {activeFilterCount > 0 && (
@@ -184,8 +185,9 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
         </Button>
       )}
 
+      {/* City Filter */}
       <div>
-        <Label htmlFor="city-select" className="font-semibold">City</Label>
+        <Label htmlFor="city-select" className="font-semibold text-sm">City</Label>
         <Select value={selectedCity} onValueChange={setSelectedCity}>
           <SelectTrigger id="city-select" className="w-full mt-2">
             <SelectValue placeholder="Select City" />
@@ -197,53 +199,92 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
         </Select>
       </div>
 
-      <div>
-        <Label className="font-semibold">
-          Price Range
-        </Label>
-        <div className="flex items-center justify-between mt-1 text-sm text-muted-foreground">
-          <span>₹{formatIndianCurrency(priceRange[0])}</span>
-          <span>₹{formatIndianCurrency(priceRange[1])}</span>
+      {/* Price Range Slider */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label className="font-semibold text-sm">Monthly Budget</Label>
+          <span className="text-xs font-bold text-primary font-mono bg-primary/10 px-2 py-0.5 rounded">
+            ₹{formatIndianCurrency(priceRange[0])} – ₹{formatIndianCurrency(priceRange[1])}
+          </span>
         </div>
-        <Slider
-          className="mt-3"
-          min={0}
-          max={maxPrice}
-          step={500}
-          value={priceRange}
-          onValueChange={(value) => setPriceRange(value as [number, number])}
-        />
+
+        {/* Quick Price Preset Chips */}
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {[
+            { label: 'All', range: [0, maxPrice] },
+            { label: '< ₹10k', range: [0, 10000] },
+            { label: '₹10k-₹15k', range: [10000, 15000] },
+            { label: '₹15k-₹20k', range: [15000, 20000] },
+            { label: '₹20k+', range: [20000, maxPrice] },
+          ].map((preset, idx) => {
+            const isSelected = priceRange[0] === preset.range[0] && priceRange[1] === preset.range[1];
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setPriceRange(preset.range as [number, number])}
+                className={cn(
+                  "text-[11px] px-2 py-0.5 rounded-full border transition-colors font-medium",
+                  isSelected
+                    ? "bg-primary text-white border-primary shadow-sm"
+                    : "bg-secondary/60 border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Range Slider */}
+        <div className="pt-2 px-1">
+          <Slider
+            min={0}
+            max={maxPrice}
+            step={500}
+            value={priceRange}
+            onValueChange={(val) => setPriceRange(val as [number, number])}
+            className="w-full"
+          />
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1 font-mono">
+          <span>Min: ₹0</span>
+          <span>Max: ₹{formatIndianCurrency(maxPrice)}</span>
+        </div>
       </div>
 
+      {/* Property Type Filter */}
       <div>
-        <Label className="font-semibold">Property Type</Label>
+        <Label className="font-semibold text-sm">Property Type</Label>
         <RadioGroup value={selectedType} onValueChange={(v) => setSelectedType(v as PropertyType | 'All')} className="mt-2 space-y-2">
-          <div className="flex items-center space-x-2"><RadioGroupItem value="All" id="type-all" /><Label htmlFor="type-all">All</Label></div>
-          <div className="flex items-center space-x-2"><RadioGroupItem value="Boys" id="type-boys" /><Label htmlFor="type-boys">Boys</Label></div>
-          <div className="flex items-center space-x-2"><RadioGroupItem value="Girls" id="type-girls" /><Label htmlFor="type-girls">Girls</Label></div>
-          <div className="flex items-center space-x-2"><RadioGroupItem value="Co-ed" id="type-coed" /><Label htmlFor="type-coed">Co-ed</Label></div>
+          <div className="flex items-center space-x-2"><RadioGroupItem value="All" id="type-all" /><Label htmlFor="type-all" className="cursor-pointer text-xs">All</Label></div>
+          <div className="flex items-center space-x-2"><RadioGroupItem value="Boys" id="type-boys" /><Label htmlFor="type-boys" className="cursor-pointer text-xs">Boys</Label></div>
+          <div className="flex items-center space-x-2"><RadioGroupItem value="Girls" id="type-girls" /><Label htmlFor="type-girls" className="cursor-pointer text-xs">Girls</Label></div>
+          <div className="flex items-center space-x-2"><RadioGroupItem value="Co-ed" id="type-coed" /><Label htmlFor="type-coed" className="cursor-pointer text-xs">Co-ed</Label></div>
         </RadioGroup>
       </div>
       
+      {/* Category Filter */}
       <div>
-        <Label className="font-semibold">Category</Label>
+        <Label className="font-semibold text-sm">Category</Label>
         <div className="mt-2 space-y-2">
           {allCategories.map(category => (
             <div key={category} className="flex items-center space-x-2">
               <Checkbox id={`cat-${category}`} checked={selectedCategories.includes(category)} onCheckedChange={() => handleCategoryChange(category)} />
-              <Label htmlFor={`cat-${category}`}>{category}</Label>
+              <Label htmlFor={`cat-${category}`} className="cursor-pointer text-xs">{category}</Label>
             </div>
           ))}
         </div>
       </div>
       
+      {/* Amenities Filter */}
       <div>
-        <Label className="font-semibold">Amenities</Label>
+        <Label className="font-semibold text-sm">Amenities</Label>
         <div className="mt-2 space-y-2">
           {allAmenities.map(amenity => (
             <div key={amenity} className="flex items-center space-x-2">
-              <Checkbox id={`amenity-${amenity}`} checked={selectedAmenities.includes(amenity)} onCheckedChange={() => handleAmenityChange( amenity)} />
-              <Label htmlFor={`amenity-${amenity}`}>{amenity}</Label>
+              <Checkbox id={`amenity-${amenity}`} checked={selectedAmenities.includes(amenity)} onCheckedChange={() => handleAmenityChange(amenity)} />
+              <Label htmlFor={`amenity-${amenity}`} className="cursor-pointer text-xs">{amenity}</Label>
             </div>
           ))}
         </div>
@@ -258,7 +299,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
           <aside className="hidden lg:block lg:col-span-1">
             <div className="sticky top-24">
               <h2 className="text-xl font-headline font-bold mb-4">Filters</h2>
-              <FiltersComponent />
+              {renderFilterControls}
             </div>
           </aside>
 
@@ -280,7 +321,7 @@ export const PropertyFilters: FC<PropertyFiltersProps> = ({ properties, searchTe
                     </SheetTrigger>
                     <SheetContent>
                         <SheetHeader><SheetTitle className="font-headline">Filters</SheetTitle></SheetHeader>
-                        <div className="py-4"><FiltersComponent/></div>
+                        <div className="py-4 overflow-y-auto max-h-[calc(100vh-100px)]">{renderFilterControls}</div>
                     </SheetContent>
                   </Sheet>
                 </div>
