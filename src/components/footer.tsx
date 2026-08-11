@@ -129,41 +129,35 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Top Campus Hubs & Locality Keyword Links for Google SEO */}
+        {/* Top Campus Hubs & Locality Topic Clusters for Google & AI SEO */}
         <div className="mt-8 pt-6 border-t border-border/40 space-y-3">
           <p className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-            Popular Student & Campus Housing Hubs
+            Explore Verified College Campus Accommodations (Zero Brokerage)
           </p>
           <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Hostels in Knowledge Park 2
+            <Link href="/campuses/gl-bajaj-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 Hostels near GL Bajaj Gate 1 & 2
             </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              PG near GL Bajaj Institute
+            <Link href="/campuses/galgotias-university-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 PG near Galgotias University
             </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Hostels near Galgotias University
+            <Link href="/campuses/sharda-university-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 Hostels near Sharda University KP-3
             </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Student Accommodation near Sharda University
+            <Link href="/campuses/amity-university-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 Girls PG near Amity Noida Sector 125
             </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              PG near NIET & Lloyd College
+            <Link href="/campuses/knowledge-park-2-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 Hostels in Knowledge Park 2 Hub
             </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Accommodations in Pari Chowk & Alpha 1
+            <Link href="/how-it-works" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              ⚡ 48h Free Bed Hold & Visit Pass
             </Link>
-            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Girls PG near Amity University Sector 125
+            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              📍 Greater Noida PGs
             </Link>
-            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Boys PG in Sector 62 Noida near JSS
-            </Link>
-            <Link href="/?category=Hostel" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Zero Brokerage Hostels Greater Noida
-            </Link>
-            <Link href="/?category=PG" className="hover:text-primary transition-colors bg-background px-2 py-1 rounded border border-border/60">
-              Single & Double Room PGs Delhi NCR
+            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              📍 Noida Co-Living Spaces
             </Link>
           </div>
         </div>

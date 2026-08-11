@@ -56,13 +56,19 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
     <Card 
       className="flex flex-col overflow-hidden shadow-lg hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
       onClick={() => onCardClick(property)}
+      data-property-id={property.id}
+      data-property-title={property.title}
+      data-property-price={property.price}
+      data-property-city={property.city}
+      data-property-type={property.type}
+      aria-label={`View details and schedule visit for ${property.title || 'Property'} in ${property.city || 'Greater Noida'}`}
     >
       <CardHeader className="p-0 relative">
         <Badge className="absolute top-2 right-2 z-10 bg-accent text-accent-foreground shadow-md">{property.type || 'Co-ed'}</Badge>
         <div className="relative w-full aspect-[4/3] overflow-hidden bg-muted">
           <Image
             src={imageUrl}
-            alt={`Exterior view of ${property.title || 'Property'}`}
+            alt={`Exterior and room view of ${property.title || 'Property'} in ${property.location || 'Greater Noida'}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -94,7 +100,7 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
           </Tooltip>
         </TooltipProvider>
         <div className="flex items-center text-sm text-muted-foreground mb-2">
-          <MapPin className="h-4 w-4 mr-1 shrink-0" />
+          <MapPin className="h-4 w-4 mr-1 shrink-0 text-primary" />
           <span className="line-clamp-1">{property.location || 'Location'}, {property.city || 'City'}</span>
         </div>
 
@@ -104,7 +110,7 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
             ✓ Zero Brokerage
           </span>
           <span className="inline-flex items-center text-[11px] font-medium text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-            🗓️ Free Visit
+            🗓️ 48h Bed Hold
           </span>
         </div>
         <div className="flex justify-between items-center mb-4">
@@ -113,7 +119,7 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
               <TooltipProvider key={amenity} delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary text-secondary-foreground">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-secondary text-secondary-foreground" title={amenity}>
                       {amenityIcons[amenity]}
                     </div>
                   </TooltipTrigger>
@@ -134,11 +140,14 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
       </CardContent>
       <CardFooter className="p-4 bg-secondary/50 flex justify-between items-center">
         <div>
-            <p className="text-xl font-bold text-primary">₹{formatIndianCurrency(property.price || 0)}</p>
-            <p className="text-xs text-muted-foreground">/ month</p>
+            <p className="text-xl font-bold text-primary font-mono">₹{formatIndianCurrency(property.price || 0)}</p>
+            <p className="text-[11px] text-muted-foreground font-medium">/ month (₹0 Brokerage)</p>
         </div>
-        <Button className="group-hover:gap-3 transition-all">
-          View Details <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+        <Button 
+          className="group-hover:gap-3 transition-all font-semibold"
+          aria-label={`View details and schedule visit for ${property.title || 'property'}`}
+        >
+          View & Book <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
         </Button>
       </CardFooter>
     </Card>

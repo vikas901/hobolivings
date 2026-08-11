@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import type { Property } from '@/lib/types';
 import { PropertyFilters } from './property-filters';
 import Image from 'next/image';
@@ -173,6 +174,83 @@ export default function PropertyListings() {
                   {city}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Strategy 1 & 9: Time-to-Value (TTV) & Quick Takeaways Bar for Students & AI Search Engines */}
+      <section className="bg-secondary/30 border-b py-6 px-4">
+        <div className="container max-w-6xl mx-auto space-y-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
+                ⚡
+              </span>
+              <div>
+                <h2 className="text-xs sm:text-sm font-bold text-foreground font-headline">
+                  Quick Student Housing Guide • Greater Noida & Noida
+                </h2>
+                <p className="text-[11px] text-muted-foreground">
+                  Key facts to help you find verified PGs and hostels in under 2 minutes:
+                </p>
+              </div>
+            </div>
+
+            {/* Direct 1-Click Campus Topic Cluster Hubs */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-[11px] font-semibold text-muted-foreground">Campus Hubs:</span>
+              <Link 
+                href="/campuses/gl-bajaj-greater-noida" 
+                className="px-2.5 py-1 rounded-full bg-background border hover:border-primary/60 text-foreground font-semibold text-[11px] transition-colors shadow-xs"
+              >
+                🎓 GL Bajaj
+              </Link>
+              <Link 
+                href="/campuses/galgotias-university-greater-noida" 
+                className="px-2.5 py-1 rounded-full bg-background border hover:border-primary/60 text-foreground font-semibold text-[11px] transition-colors shadow-xs"
+              >
+                🎓 Galgotias
+              </Link>
+              <Link 
+                href="/campuses/sharda-university-greater-noida" 
+                className="px-2.5 py-1 rounded-full bg-background border hover:border-primary/60 text-foreground font-semibold text-[11px] transition-colors shadow-xs"
+              >
+                🎓 Sharda Univ
+              </Link>
+              <Link 
+                href="/campuses/amity-university-noida" 
+                className="px-2.5 py-1 rounded-full bg-background border hover:border-primary/60 text-foreground font-semibold text-[11px] transition-colors shadow-xs"
+              >
+                🎓 Amity Noida
+              </Link>
+            </div>
+          </div>
+
+          {/* 4 Citable Key Takeaway Metric Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+            <div className="p-3 rounded-xl bg-card border shadow-xs text-xs space-y-0.5">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase">Average Budget</div>
+              <div className="font-headline font-bold text-foreground">₹7,500 – ₹13,500/mo</div>
+              <p className="text-[10px] text-muted-foreground truncate">Double & Triple sharing with meals</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-card border shadow-xs text-xs space-y-0.5">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase">Hygienic Meals</div>
+              <div className="font-headline font-bold text-foreground">3 Meals + Evening Tea</div>
+              <p className="text-[10px] text-muted-foreground truncate">Daily menu with North & South food</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-card border shadow-xs text-xs space-y-0.5">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase">Brokerage Fee</div>
+              <div className="font-headline font-bold text-emerald-600">100% Free (₹0 Commission)</div>
+              <p className="text-[10px] text-muted-foreground truncate">Direct landlord pricing, zero middleman</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-card border shadow-xs text-xs space-y-0.5">
+              <div className="text-muted-foreground text-[10px] font-semibold uppercase">Free Bed Hold</div>
+              <div className="font-headline font-bold text-primary">48 Hours Free (₹0 Deposit)</div>
+              <p className="text-[10px] text-muted-foreground truncate">Lock price & room while traveling</p>
             </div>
           </div>
         </div>
