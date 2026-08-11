@@ -1,3 +1,10 @@
+if (typeof globalThis !== 'undefined' && 'localStorage' in globalThis) {
+  try {
+    // Prevent Node 22+ experimental global localStorage from breaking SSR
+    delete (globalThis as any).localStorage;
+  } catch (e) {}
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
