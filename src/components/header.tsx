@@ -10,7 +10,7 @@ import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { 
   LogOut, User, LayoutDashboard, RefreshCw, Menu, X, Home, Building2, 
-  Briefcase, HelpCircle, Phone, MessageCircle, Plus, Sparkles 
+  Briefcase, HelpCircle, Phone, MessageCircle, Plus, Sparkles, BookOpen 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
@@ -108,6 +108,9 @@ export default function Header() {
             </Link>
             <Link href="/how-it-works" className="hover:text-foreground transition-colors text-primary font-bold">
               How It Works
+            </Link>
+            <Link href="/guides" className="hover:text-foreground transition-colors">
+              Guides
             </Link>
             <Link href="/about" className="hover:text-foreground transition-colors">
               About Us
@@ -239,6 +242,15 @@ export default function Header() {
               >
                 <Sparkles className="h-4 w-4 text-primary shrink-0" /> 
                 <span>How It Works</span>
+              </Link>
+
+              <Link 
+                href="/guides" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-secondary bg-secondary/30 transition-colors font-semibold"
+              >
+                <BookOpen className="h-4 w-4 text-primary shrink-0" /> 
+                <span>Student Guides</span>
               </Link>
               
               <Link 

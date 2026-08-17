@@ -131,10 +131,18 @@ export default function Footer() {
 
         {/* Top Campus Hubs & Locality Topic Clusters for Google & AI SEO */}
         <div className="mt-8 pt-6 border-t border-border/40 space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-foreground">
-            Explore Verified College Campus Accommodations (Zero Brokerage)
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-foreground">
+              Explore Verified College Campus Accommodations & Topic Guides
+            </p>
+            <Link href="/guides" className="text-xs font-bold text-primary hover:underline">
+              📚 2026 Student Housing Guides
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+            <Link href="/guides/student-housing-guide" className="hover:text-primary transition-colors bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full border border-primary/20">
+              ⭐ 2026 Greater Noida Housing Guide
+            </Link>
             <Link href="/campuses/gl-bajaj-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
               🎓 Hostels near GL Bajaj Gate 1 & 2
             </Link>
@@ -147,17 +155,23 @@ export default function Footer() {
             <Link href="/campuses/amity-university-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
               🎓 Girls PG near Amity Noida Sector 125
             </Link>
-            <Link href="/campuses/knowledge-park-2-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
-              🎓 Hostels in Knowledge Park 2 Hub
+            <Link href="/campuses/niet-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 Hostels near NIET KP-2
+            </Link>
+            <Link href="/campuses/jss-academy-sector-62-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              🎓 PG near JSS Sector 62 Noida
+            </Link>
+            <Link href="/campuses/pari-chowk-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              📍 Pari Chowk Metro Hub
+            </Link>
+            <Link href="/campuses/alpha-1-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              📍 Alpha 1 Student Sector
+            </Link>
+            <Link href="/campuses/sector-62-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
+              📍 Sector 62 IT & Student PGs
             </Link>
             <Link href="/how-it-works" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
               ⚡ 48h Free Bed Hold & Visit Pass
-            </Link>
-            <Link href="/?city=Greater+Noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
-              📍 Greater Noida PGs
-            </Link>
-            <Link href="/?city=Noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
-              📍 Noida Co-Living Spaces
             </Link>
           </div>
         </div>

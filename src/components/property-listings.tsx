@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import type { Property } from '@/lib/types';
 import { PropertyFilters } from './property-filters';
@@ -14,6 +14,7 @@ import { db } from '@/lib/firebase';
 import { Skeleton } from './ui/skeleton';
 import DpiitCertificateModal from './dpiit-certificate-modal';
 import { properties as defaultProperties } from '@/lib/dummy-data';
+import { trackSearchQuery, getTrendingSearchKeywords, DEFAULT_TRENDING_SEARCHES } from '@/lib/analytics/search-intent-tracker';
 
 // Module-level in-memory cache for fast sub-50ms instant renders across route transitions
 let propertiesCache: Property[] | null = null;
@@ -21,9 +22,18 @@ let lastCacheTime = 0;
 const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
 
 export default function PropertyListings() {
-  const [properties, setProperties] = useState<Property[]>(propertiesCache || []);
-  const [loading, setLoading] = useState(!propertiesCache);
+  const [properties, setProperties] = useState<Property[]>(propertiesCache || defaultProperties);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [trendingKeywords, setTrendingKeywords] = useState<string[]>(DEFAULT_TRENDING_SEARCHES);
+
+  useEffect(() => {
+    getTrendingSearchKeywords().then((keywords) => {
+      if (keywords && keywords.length > 0) {
+        setTrendingKeywords(keywords);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -139,39 +149,44 @@ export default function PropertyListings() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search by city, location, or landmark..."
+                placeholder="Search by college, campus (e.g. GL Bajaj, Sharda), locality..."
                 className="w-full h-14 pl-12 pr-28 text-base rounded-full shadow-2xl text-foreground bg-background border-none focus-visible:ring-2 focus-visible:ring-primary"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    trackSearchQuery(searchTerm, 'homepage_search_bar');
                     document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
               />
               <Button 
-                onClick={() => document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  trackSearchQuery(searchTerm, 'homepage_search_bar');
+                  document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-6 rounded-full font-semibold shadow-md"
               >
                 Search
               </Button>
             </div>
 
-            {/* Popular City Shortcuts */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs pt-1">
-              <span className="text-white/80 font-medium">Popular:</span>
-              {['Noida', 'Delhi', 'Gurgaon', 'Greater Noida'].map((city) => (
+            {/* Trending First-Party Search Shortcuts */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs pt-1">
+              <span className="text-white/80 font-medium text-[11px]">🔥 Trending Searches:</span>
+              {trendingKeywords.slice(0, 5).map((kw) => (
                 <button
-                  key={city}
+                  key={kw}
                   onClick={() => {
-                    setSearchTerm(city);
+                    setSearchTerm(kw);
+                    trackSearchQuery(kw, 'trending_chip_click');
                     setTimeout(() => {
                       document.getElementById('explore-spaces')?.scrollIntoView({ behavior: 'smooth' });
                     }, 100);
                   }}
-                  className="bg-white/10 hover:bg-white/20 text-white font-semibold px-3 py-1 rounded-full border border-white/25 transition-all shadow-sm"
+                  className="bg-white/15 hover:bg-white/25 text-white font-medium text-[11px] px-2.5 py-1 rounded-full border border-white/20 transition-all shadow-xs"
                 >
-                  {city}
+                  {kw}
                 </button>
               ))}
             </div>
@@ -197,9 +212,15 @@ export default function PropertyListings() {
               </div>
             </div>
 
-            {/* Direct 1-Click Campus Topic Cluster Hubs */}
+            {/* Direct 1-Click Campus Topic Cluster Hubs & Guides */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-[11px] font-semibold text-muted-foreground">Campus Hubs:</span>
+              <span className="text-[11px] font-semibold text-muted-foreground">Hubs & Guides:</span>
+              <Link 
+                href="/guides/student-housing-guide" 
+                className="px-2.5 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-bold text-[11px] hover:bg-primary/20 transition-colors shadow-xs"
+              >
+                📚 2026 Student Guide
+              </Link>
               <Link 
                 href="/campuses/gl-bajaj-greater-noida" 
                 className="px-2.5 py-1 rounded-full bg-background border hover:border-primary/60 text-foreground font-semibold text-[11px] transition-colors shadow-xs"
@@ -226,6 +247,7 @@ export default function PropertyListings() {
               </Link>
             </div>
           </div>
+
 
           {/* 4 Citable Key Takeaway Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
@@ -278,7 +300,9 @@ export default function PropertyListings() {
         </div>
       ) : (
         <div id="explore-spaces" className="scroll-mt-20">
-          <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <Suspense fallback={null}>
+            <PropertyFilters properties={properties} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          </Suspense>
         </div>
       )}
     </>

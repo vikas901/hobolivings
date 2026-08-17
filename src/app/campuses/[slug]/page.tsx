@@ -1,6 +1,11 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CAMPUS_HUBS } from '@/lib/campus-data';
+import {
+  buildBreadcrumbSchema,
+  buildFAQSchema,
+  buildLocalityHubSchema,
+} from '@/lib/seo/schema-builder';
 import CampusContent from './campus-content';
 
 interface CampusPageProps {
@@ -39,6 +44,7 @@ export async function generateMetadata({ params }: CampusPageProps): Promise<Met
       `boys hostel ${campus.shortName.toLowerCase()}`,
       `girls pg ${campus.shortName.toLowerCase()}`,
       'zero brokerage pg greater noida',
+      'student housing greater noida',
       'hobo livings'
     ],
     alternates: {
@@ -78,44 +84,25 @@ export default async function CampusPage({ params }: CampusPageProps) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
 
   // Schema 1: BreadcrumbList Schema for Google SERP
-  const breadcrumbJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: baseUrl,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: `${campus.city} Hostels`,
-        item: `${baseUrl}/?city=${encodeURIComponent(campus.city)}`,
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: campus.name,
-        item: `${baseUrl}/campuses/${campus.slug}`,
-      },
-    ],
-  };
+  const breadcrumbJsonLd = buildBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: `${campus.city} Hostels`, url: `/?city=${encodeURIComponent(campus.city)}` },
+    { name: campus.name, url: `/campuses/${campus.slug}` },
+  ]);
 
   // Schema 2: FAQPage Schema for Rich Snippets
-  const faqJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: campus.faqs.map((faq) => ({
-      '@type': 'Question',
-      name: faq.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: faq.answer,
-      },
-    })),
-  };
+  const faqJsonLd = buildFAQSchema(campus.faqs);
+
+  // Schema 3: Locality & Accommodation Hub Schema
+  const localityJsonLd = buildLocalityHubSchema({
+    name: campus.name,
+    locality: campus.locality,
+    city: campus.city,
+    description: campus.description,
+    url: `${baseUrl}/campuses/${campus.slug}`,
+    image: campus.heroImage,
+    priceRange: campus.avgRent,
+  });
 
   return (
     <>
@@ -126,6 +113,10 @@ export default async function CampusPage({ params }: CampusPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localityJsonLd) }}
       />
       <CampusContent campus={campus} />
     </>

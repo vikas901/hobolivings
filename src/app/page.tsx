@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import Header from '@/components/header';
@@ -20,9 +20,8 @@ export default function Home() {
     }
   }, [loading, isOwner, router]);
 
-  // While checking auth state or if the user is an owner who will be redirected,
-  // show a loading skeleton to prevent flashing the student homepage.
-  if (loading || isOwner) {
+  // If the user is an authenticated owner who is being redirected to the landlord dashboard:
+  if (!loading && isOwner) {
     return (
       <div className="flex min-h-screen flex-col">
         <Header />
@@ -53,7 +52,9 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <PropertyListings />
+        <Suspense fallback={null}>
+          <PropertyListings />
+        </Suspense>
       </main>
       <Footer />
     </div>

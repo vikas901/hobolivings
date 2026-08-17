@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { CAMPUS_HUBS } from '@/lib/campus-data';
+import { GUIDES_DATA } from '@/lib/guides-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
@@ -12,6 +13,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.95,
   }));
 
+  const guideEntries: MetadataRoute.Sitemap = Object.keys(GUIDES_DATA).map((slug) => ({
+    url: `${baseUrl}/guides/${slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly',
+    priority: GUIDES_DATA[slug].isPillar ? 0.98 : 0.9,
+  }));
+
   return [
     {
       url: baseUrl,
@@ -21,17 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...campusEntries,
     {
-      url: `${baseUrl}/?city=Greater+Noida`,
+      url: `${baseUrl}/guides`,
       lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
+      changeFrequency: 'weekly',
+      priority: 0.95,
     },
-    {
-      url: `${baseUrl}/?city=Noida`,
-      lastModified: currentDate,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
+    ...guideEntries,
     {
       url: `${baseUrl}/how-it-works`,
       lastModified: currentDate,

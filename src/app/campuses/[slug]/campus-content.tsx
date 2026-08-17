@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import { CampusHub, CAMPUS_HUBS } from '@/lib/campus-data';
@@ -23,14 +22,15 @@ import {
   Sparkles,
   HelpCircle,
   Building2,
-  PhoneCall,
-  Flame
+  BookOpen
 } from 'lucide-react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { properties as defaultProperties } from '@/lib/dummy-data';
 import DpiitCertificateModal from '@/components/dpiit-certificate-modal';
 import { PropertyDetailModal } from '@/components/property-detail-modal';
+import { ZeroClickAnswerBox, ComparisonMatrix } from '@/components/seo/zero-click-answer-box';
+import { generateHubComparisonMatrix } from '@/lib/seo/programmatic-engine';
 
 interface CampusContentProps {
   campus: CampusHub;
@@ -98,6 +98,7 @@ export default function CampusContent({ campus }: CampusContentProps) {
   }, [campus]);
 
   const otherCampuses = Object.values(CAMPUS_HUBS).filter(c => c.slug !== campus.slug);
+  const comparisonRows = generateHubComparisonMatrix(campus);
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -117,7 +118,7 @@ export default function CampusContent({ campus }: CampusContentProps) {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-secondary/40 via-background to-background py-14 px-4 border-b">
+      <section className="relative overflow-hidden bg-gradient-to-b from-secondary/40 via-background to-background py-12 px-4 border-b">
         <div className="container max-w-6xl mx-auto space-y-6">
           
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -163,10 +164,10 @@ export default function CampusContent({ campus }: CampusContentProps) {
                   <div className="flex items-center justify-between border-b pb-3">
                     <span className="font-headline font-bold text-sm text-foreground flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-primary" />
-                      {campus.shortName} Quick Guide
+                      {campus.shortName} Hub Summary
                     </span>
                     <Badge variant="outline" className="text-[10px] font-extrabold text-emerald-600 border-emerald-500/40">
-                      Live Availability
+                      {campus.totalVerifiedBeds}
                     </Badge>
                   </div>
 
@@ -202,11 +203,20 @@ export default function CampusContent({ campus }: CampusContentProps) {
 
           </div>
 
+          {/* Zero-Click Micro Answer Box */}
+          <ZeroClickAnswerBox
+            question={`What is the student accommodation landscape near ${campus.shortName}?`}
+            summary={campus.zeroClickSummary}
+            keyTakeaways={campus.commuteHighlights}
+            citationSource={`Verified by Hobo Livings On-Ground Team • ${campus.locality}`}
+            updatedDate="Updated for Academic Year 2026-27"
+          />
+
         </div>
       </section>
 
       {/* Property Listings Section */}
-      <section id="properties-list" className="py-14 px-4 container max-w-6xl mx-auto space-y-8">
+      <section id="properties-list" className="py-12 px-4 container max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
           <div>
             <h2 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground flex items-center gap-2">
@@ -246,74 +256,146 @@ export default function CampusContent({ campus }: CampusContentProps) {
         />
       )}
 
-      {/* Key Highlights & Amenities Section */}
-      <section className="bg-secondary/20 py-14 px-4 border-y">
-        <div className="container max-w-6xl mx-auto space-y-8">
+      {/* Comparison Matrix Section */}
+      <section className="bg-secondary/20 py-12 px-4 border-y">
+        <div className="container max-w-6xl mx-auto space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <Badge variant="outline" className="text-xs uppercase tracking-wider text-primary border-primary/30">
-              Campus Amenities & Safety
+              Transparent Comparison
             </Badge>
             <h3 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground">
-              What to Expect in {campus.shortName} Hostels
+              Hobo Verified Hostels vs Campus Mess vs Private Flats
             </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Compare actual costs, amenities, and flexibility near {campus.shortName}.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {campus.keyHighlights.map((highlight, idx) => (
-              <div key={idx} className="p-5 rounded-2xl bg-card border shadow-sm flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
-                <p className="text-xs sm:text-sm font-semibold text-foreground leading-snug">
-                  {highlight}
-                </p>
-              </div>
-            ))}
-          </div>
+          <ComparisonMatrix 
+            title={`Housing Comparison Matrix — Near ${campus.shortName}`}
+            columns={['Hobo Verified Partner Hostels', 'College On-Campus Hostels', 'Private Independent Flats']}
+            rows={comparisonRows}
+          />
+        </div>
+      </section>
 
-          {/* Landmarks Box */}
-          <div className="p-6 rounded-2xl bg-card border shadow-sm space-y-3">
-            <h4 className="font-headline font-bold text-sm text-foreground flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" /> Key Landmarks & Walking Routes Around {campus.shortName}:
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {campus.landmarks.map((landmark, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs font-medium py-1 px-3">
-                  📍 {landmark}
-                </Badge>
-              ))}
+      {/* Key Highlights & Landmarks Section */}
+      <section className="py-12 px-4 container max-w-6xl mx-auto space-y-8">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <Badge variant="outline" className="text-xs uppercase tracking-wider text-primary border-primary/30">
+            Campus Amenities & Safety
+          </Badge>
+          <h3 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground">
+            What to Expect in {campus.shortName} Hostels
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {campus.keyHighlights.map((highlight, idx) => (
+            <div key={idx} className="p-5 rounded-2xl bg-card border shadow-sm flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm font-semibold text-foreground leading-snug">
+                {highlight}
+              </p>
             </div>
+          ))}
+        </div>
+
+        {/* Landmarks Box */}
+        <div className="p-6 rounded-2xl bg-card border shadow-sm space-y-3">
+          <h4 className="font-headline font-bold text-sm text-foreground flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary" /> Key Landmarks & Walking Routes Around {campus.shortName}:
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {campus.landmarks.map((landmark, idx) => (
+              <Badge key={idx} variant="secondary" className="text-xs font-medium py-1 px-3">
+                📍 {landmark}
+              </Badge>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Campus Specific FAQs Section */}
-      <section className="py-14 px-4 container max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <Badge className="bg-primary/10 text-primary border-primary/30 font-bold text-xs uppercase px-3 py-1">
-            Frequently Asked Questions
-          </Badge>
-          <h3 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground">
-            Student FAQs for {campus.shortName} Accommodations
-          </h3>
-        </div>
+      <section className="bg-secondary/20 py-12 px-4 border-t">
+        <div className="container max-w-4xl mx-auto space-y-8">
+          <div className="text-center space-y-2">
+            <Badge className="bg-primary/10 text-primary border-primary/30 font-bold text-xs uppercase px-3 py-1">
+              Frequently Asked Questions
+            </Badge>
+            <h3 className="font-headline text-2xl sm:text-3xl font-extrabold text-foreground">
+              Student FAQs for {campus.shortName} Accommodations
+            </h3>
+          </div>
 
-        <div className="space-y-4">
-          {campus.faqs.map((faq, idx) => (
-            <Card key={idx} className="border bg-card">
-              <CardContent className="p-5 space-y-2">
-                <h4 className="font-headline font-bold text-sm sm:text-base text-foreground flex items-start gap-2">
-                  <HelpCircle className="h-4 w-4 text-primary shrink-0 mt-1" />
-                  <span>{faq.question}</span>
-                </h4>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-6">
-                  {faq.answer}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          <div className="space-y-4">
+            {campus.faqs.map((faq, idx) => (
+              <Card key={idx} className="border bg-card">
+                <CardContent className="p-5 space-y-2">
+                  <h4 className="font-headline font-bold text-sm sm:text-base text-foreground flex items-start gap-2">
+                    <HelpCircle className="h-4 w-4 text-primary shrink-0 mt-1" />
+                    <span>{faq.question}</span>
+                  </h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pl-6">
+                    {faq.answer}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Cross-Link Other Campus Topic Clusters (Low Crawl Depth) */}
+      {/* Internal Links to Topic Authority Guides */}
+      <section className="py-12 px-4 container max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h4 className="font-headline font-bold text-lg text-foreground flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Helpful Student Guides & Resources:
+          </h4>
+          <Link href="/guides" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+            View All Guides <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <Link 
+            href="/guides/student-housing-guide" 
+            className="p-4 rounded-xl border bg-card hover:border-primary/50 transition-all shadow-xs group"
+          >
+            <div className="font-bold text-foreground group-hover:text-primary transition-colors">
+              Ultimate Greater Noida Student Living Guide (2026)
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Complete cost breakdown, mess reviews, safety tips, and lease rights.
+            </p>
+          </Link>
+          <Link 
+            href="/guides/aqua-line-metro-commute-guide" 
+            className="p-4 rounded-xl border bg-card hover:border-primary/50 transition-all shadow-xs group"
+          >
+            <div className="font-bold text-foreground group-hover:text-primary transition-colors">
+              Knowledge Park Aqua Line Metro Matrix
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Commute times, station gates, and student fare cards from Delhi & Noida.
+            </p>
+          </Link>
+          <Link 
+            href="/guides/tenant-rights-security-deposit-guide" 
+            className="p-4 rounded-xl border bg-card hover:border-primary/50 transition-all shadow-xs group"
+          >
+            <div className="font-bold text-foreground group-hover:text-primary transition-colors">
+              Student Tenant Rights & Security Deposit Laws
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              How to ensure 100% refund of security deposits and avoid unfair lock-ins.
+            </p>
+          </Link>
+        </div>
+      </section>
+
+      {/* Cross-Link Other Campus Topic Clusters */}
       <section className="bg-secondary/30 py-12 px-4 border-t">
         <div className="container max-w-6xl mx-auto space-y-6">
           <h4 className="font-headline font-bold text-base text-foreground">
