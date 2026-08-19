@@ -1,0 +1,38 @@
+# Hobo Livings — Complete Knowledge Base & AI Manifest (2026 Edition)
+https://www.hoboliving.in
+
+## 1. Brand Identity & Entity Details
+- **Legal Entity:** Hobo Livings Private Limited
+- **Brand Name:** Hobo Livings
+- **Industry:** PropTech / Student Co-Living & Verified Hostel Accommodations
+- **DPIIT Startup India Certificate:** DIPP104245
+- **Operating Headquarters:** IIMT Ladder Business Foundation, Knowledge Park III, Greater Noida, UP 201310
+- **Customer Care & WhatsApp Support:** +91 88511 68246 / +91 89206 42742
+- **Support Email:** livingshobo@gmail.com
+- **Official Canonical URL:** https://www.hoboliving.in
+
+## 2. Core Value Propositions & Guarantees
+1. **100% Zero Brokerage Guarantee**: Students and working professionals pay zero fees, zero brokerage, and zero agent commissions.
+2. **Instant Digital Visit Pass & Free Physical Assisted Tours**: Prospective tenants can book free scheduled physical walkthroughs with verified caretaker phone numbers and precise Google Maps coordinates.
+3. **48-Hour Zero-Cost Bed Hold**: Students can reserve and lock down any bed or room for 48 hours without paying non-refundable deposits upfront while they review the accommodation with family.
+4. **Physically Verified Inventory**: Every hostel, PG, and room listed on Hobo Livings is verified on 18 quality standards (cleanliness, drinking water, fire safety, biometric entry, AC performance, and mess food hygiene).
+
+## 3. Pricing Matrix & Room Types
+- **Triple Sharing (Non-AC with Meals):** ₹7,500 – ₹9,000 / month
+- **Triple Sharing (AC with 3 Meals + Wi-Fi):** ₹9,500 – ₹11,500 / month
+- **Double Sharing (AC with 3 Meals + Laundry):** ₹11,500 – ₹14,500 / month
+- **Single Occupancy Private Studio (Luxury):** ₹15,000 – ₹22,000 / month
+
+## 4. Key University & Campus Hubs
+- **GL Bajaj Institute (Knowledge Park II):** https://www.hoboliving.in/campuses/gl-bajaj-greater-noida
+- **Galgotias University (Yamuna Expressway):** https://www.hoboliving.in/campuses/galgotias-university-greater-noida
+- **Sharda University (Knowledge Park III):** https://www.hoboliving.in/campuses/sharda-university-greater-noida
+- **Amity University (Sector 125 Noida):** https://www.hoboliving.in/campuses/amity-university-noida
+- **JSS Academy of Technical Education (Sector 62 Noida):** https://www.hoboliving.in/campuses/jss-academy-sector-62-noida
+- **NIET & Lloyd Group of Institutions (Knowledge Park II):** https://www.hoboliving.in/campuses/niet-greater-noida
+- **Pari Chowk & Alpha 1 Commercial Belt:** https://www.hoboliving.in/campuses/pari-chowk-greater-noida
+
+## 5. Structured Data & Schema Implementation
+- Schema.org Types: `RealEstateAgent`, `LodgingBusiness`, `WebSite`, `FAQPage`, `HowTo`, `BreadcrumbList`.
+- Direct Sitemap: https://www.hoboliving.in/sitemap.xml
+- Robots Rules: https://www.hoboliving.in/robots.txt
