@@ -73,9 +73,20 @@ export function buildWebsiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name: 'Hobo Livings',
     alternateName: ['Hobo Livings', 'Hobo Living', 'HoboLivings', 'Hobo Livings Private Limited'],
     url: SITE_URL,
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Hobo Livings',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/logo.png`,
+      },
+    },
     potentialAction: {
       '@type': 'SearchAction',
       target: {

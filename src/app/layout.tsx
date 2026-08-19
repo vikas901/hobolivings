@@ -55,6 +55,7 @@ export const metadata: Metadata = {
     'hobo livings',
     'hobo living hostels'
   ],
+  applicationName: 'Hobo Livings',
   authors: [{ name: 'Hobo Livings', url: SITE_URL }],
   creator: 'Hobo Livings',
   publisher: 'Hobo Livings',
@@ -96,13 +97,18 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     type: 'website',
   },
+  manifest: '/site.webmanifest',
   icons: {
     icon: [
-      { url: '/logo.png', sizes: 'any' },
-      { url: '/favicon.ico' }
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    shortcut: '/favicon-48x48.png',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -148,6 +154,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }}
