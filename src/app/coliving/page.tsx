@@ -87,17 +87,17 @@ export default function ColivingIndexPage() {
             </div>
 
             <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">
-              Modern Co-Living & Student Hostels <br />
+              Find Verified PGs & Hostels <br />
               <span className="bg-gradient-to-r from-rose-500 via-primary to-pink-600 bg-clip-text text-transparent">
-                Across India (₹0 Brokerage)
+                by City (₹0 Brokerage)
               </span>
             </h1>
 
             <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-              Explore physically verified co-living spaces, student hostels, and executive PGs located next to major university campuses and tech parks.
+              Browse physically verified student hostels, luxury PGs, and executive co-living spaces with transparent pricing, walking distances to college gates, and instant visit passes.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Badge variant="outline" className="px-4 py-1.5 text-sm bg-background/80 shadow-xs border-primary/20">
                 ✓ 100% Zero Brokerage
               </Badge>
@@ -108,15 +108,25 @@ export default function ColivingIndexPage() {
                 ✓ Free Guided Physical Visits
               </Badge>
             </div>
+
+            {/* Contextual cross-link to Student Advice */}
+            <div className="pt-2">
+              <Link 
+                href="/guides" 
+                className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 px-4 py-2 rounded-full transition-all"
+              >
+                <span>💡 Looking for cost breakdowns & mess reviews? Read Student Living Guides →</span>
+              </Link>
+            </div>
           </div>
         </section>
 
         {/* City Pillars Grid */}
         <section className="py-16 container px-4 max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-3">
-            <h2 className="font-headline text-3xl font-bold">Explore Co-Living by City</h2>
+            <h2 className="font-headline text-3xl font-bold">Select Your City to Explore Rooms</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Select your city to browse neighborhood rental guides, campus clusters, transit connectivity, and verified rooms.
+              Choose your city to view neighborhood rent comparison tables, walking distance campus clusters, and available verified listings.
             </p>
           </div>
 

@@ -107,13 +107,13 @@ export default function Header() {
               Home
             </Link>
             <Link href="/coliving" className="hover:text-foreground transition-colors text-primary font-bold">
-              Co-Living
+              Explore Cities
             </Link>
             <Link href="/how-it-works" className="hover:text-foreground transition-colors">
               How It Works
             </Link>
             <Link href="/guides" className="hover:text-foreground transition-colors">
-              Guides
+              Student Advice
             </Link>
             <Link href="/about" className="hover:text-foreground transition-colors">
               About Us
@@ -243,8 +243,8 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-secondary bg-primary/10 text-primary font-bold transition-colors"
               >
-                <Home className="h-4 w-4 text-primary shrink-0" /> 
-                <span>Co-Living Cities</span>
+                <Building2 className="h-4 w-4 text-primary shrink-0" /> 
+                <span>Explore Cities & PGs</span>
               </Link>
 
               <Link 
@@ -262,7 +262,7 @@ export default function Header() {
                 className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-secondary bg-secondary/30 transition-colors font-semibold"
               >
                 <BookOpen className="h-4 w-4 text-primary shrink-0" /> 
-                <span>Student Guides</span>
+                <span>Student Advice & Guides</span>
               </Link>
               
               <Link 

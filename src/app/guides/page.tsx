@@ -57,14 +57,23 @@ export default function GuidesIndexPage() {
       <section className="bg-gradient-to-b from-secondary/40 via-background to-background py-14 px-4 border-b">
         <div className="container max-w-6xl mx-auto text-center space-y-4">
           <Badge className="bg-primary/10 text-primary border-primary/30 font-bold text-xs uppercase px-3 py-1">
-            📚 Student Housing Knowledge Hub (2026)
+            📚 Student Housing & Cost Advisory (2026)
           </Badge>
           <h1 className="font-headline text-3xl sm:text-5xl font-black text-foreground tracking-tight max-w-3xl mx-auto">
-            Everything You Need to Know About Student Living in NCR
+            Student Living Guides & Expense Breakdowns
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Data-backed research, cost breakdowns, mess food hygiene standards, and tenant legal protections published by the Hobo Livings research team.
+            Independent research on student monthly budgets, hostel mess vs tiffin food quality, safety inspection checklists, and tenant rights.
           </p>
+
+          <div className="pt-2">
+            <Link 
+              href="/coliving" 
+              className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 px-4 py-2 rounded-full transition-all"
+            >
+              <span>🏠 Ready to view rooms? Browse Verified PGs & Hostels by City →</span>
+            </Link>
+          </div>
         </div>
       </section>
 
