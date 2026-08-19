@@ -23,7 +23,7 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-headline',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.in';
 
 export const viewport: Viewport = {
   themeColor: '#E63946',

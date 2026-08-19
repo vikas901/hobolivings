@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: GuidePageProps): Promise<Meta
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.in';
   const url = `${baseUrl}/guides/${guide.slug}`;
 
   return {
@@ -70,7 +70,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.in';
 
   // Schema 1: BreadcrumbList Schema
   const breadcrumbJsonLd = buildBreadcrumbSchema([

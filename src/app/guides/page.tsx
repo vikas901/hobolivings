@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, ChevronRight } from 'lucide-react';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.in';
 
 export const metadata: Metadata = {
   title: 'Student Living & Housing Guides (2026 Edition) | Hobo Livings',
