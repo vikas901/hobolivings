@@ -106,7 +106,10 @@ export default function Header() {
             <Link href="/" className="hover:text-foreground transition-colors">
               Home
             </Link>
-            <Link href="/how-it-works" className="hover:text-foreground transition-colors text-primary font-bold">
+            <Link href="/coliving" className="hover:text-foreground transition-colors text-primary font-bold">
+              Co-Living
+            </Link>
+            <Link href="/how-it-works" className="hover:text-foreground transition-colors">
               How It Works
             </Link>
             <Link href="/guides" className="hover:text-foreground transition-colors">
@@ -236,9 +239,18 @@ export default function Header() {
               </Link>
 
               <Link 
-                href="/how-it-works" 
+                href="/coliving" 
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-secondary bg-primary/10 text-primary font-bold transition-colors"
+              >
+                <Home className="h-4 w-4 text-primary shrink-0" /> 
+                <span>Co-Living Cities</span>
+              </Link>
+
+              <Link 
+                href="/how-it-works" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-secondary bg-secondary/30 transition-colors font-semibold"
               >
                 <Sparkles className="h-4 w-4 text-primary shrink-0" /> 
                 <span>How It Works</span>

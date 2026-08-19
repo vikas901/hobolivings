@@ -140,8 +140,17 @@ export default function Footer() {
             </Link>
           </div>
           <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-            <Link href="/guides/student-housing-guide" className="hover:text-primary transition-colors bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full border border-primary/20">
-              ⭐ 2026 Greater Noida Housing Guide
+            <Link href="/coliving/greater-noida" className="hover:text-primary transition-colors bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full border border-primary/20">
+              🏙️ Greater Noida Co-Living
+            </Link>
+            <Link href="/coliving/noida" className="hover:text-primary transition-colors bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full border border-primary/20">
+              🏙️ Noida Co-Living & PGs
+            </Link>
+            <Link href="/coliving/bangalore" className="hover:text-primary transition-colors bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-full border border-primary/20">
+              🏙️ Bangalore Co-Living
+            </Link>
+            <Link href="/guides/student-housing-guide" className="hover:text-primary transition-colors bg-secondary text-foreground font-semibold px-2.5 py-1 rounded-full border border-border/60">
+              ⭐ 2026 Housing Guide
             </Link>
             <Link href="/campuses/gl-bajaj-greater-noida" className="hover:text-primary transition-colors bg-background px-2.5 py-1 rounded-full border border-border/60 font-medium">
               🎓 Hostels near GL Bajaj Gate 1 & 2

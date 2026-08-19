@@ -1,10 +1,18 @@
 import { MetadataRoute } from 'next';
 import { CAMPUS_HUBS } from '@/lib/campus-data';
 import { GUIDES_DATA } from '@/lib/guides-data';
+import { CITY_PILLARS } from '@/lib/city-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.in';
   const currentDate = new Date();
+
+  const cityEntries: MetadataRoute.Sitemap = Object.keys(CITY_PILLARS).map((slug) => ({
+    url: `${baseUrl}/coliving/${slug}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly',
+    priority: 0.98,
+  }));
 
   const campusEntries: MetadataRoute.Sitemap = Object.keys(CAMPUS_HUBS).map((slug) => ({
     url: `${baseUrl}/campuses/${slug}`,
@@ -27,6 +35,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/coliving`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.98,
+    },
+    ...cityEntries,
     ...campusEntries,
     {
       url: `${baseUrl}/guides`,
