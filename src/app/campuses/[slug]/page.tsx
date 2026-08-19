@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: CampusPageProps): Promise<Met
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
   const url = `${baseUrl}/campuses/${campus.slug}`;
 
   return {
@@ -81,7 +81,7 @@ export default async function CampusPage({ params }: CampusPageProps) {
     notFound();
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
 
   // Schema 1: BreadcrumbList Schema for Google SERP
   const breadcrumbJsonLd = buildBreadcrumbSchema([

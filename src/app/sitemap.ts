@@ -3,7 +3,7 @@ import { CAMPUS_HUBS } from '@/lib/campus-data';
 import { GUIDES_DATA } from '@/lib/guides-data';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
   const currentDate = new Date();
 
   const campusEntries: MetadataRoute.Sitemap = Object.keys(CAMPUS_HUBS).map((slug) => ({

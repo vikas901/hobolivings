@@ -4,7 +4,7 @@
  * FAQPage, BreadcrumbList, HowTo, Speakable, and Review schemas.
  */
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://hoboliving.vercel.app';
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.hoboliving.com';
 
 export interface BreadcrumbItem {
   name: string;
