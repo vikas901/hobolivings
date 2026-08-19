@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, ArrowRight, WashingMachine, Bath, Sparkles, Camera } from 'lucide-react';
+import { Star, MapPin, Wifi, Wind, UtensilsCrossed, ParkingCircle, ArrowRight, WashingMachine, Bath, Sparkles, Camera, MessageCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatIndianCurrency } from '@/components/ui/currency-input';
 
@@ -30,17 +30,8 @@ const getValidImageUrl = (image: any, images: any): string => {
   if (typeof image === 'string' && image.trim().length > 0 && !image.includes('placehold.co')) {
     return image;
   }
-  if (Array.isArray(images) && images.length > 0) {
-    const first = images[0];
-    if (typeof first === 'string' && first.trim().length > 0 && !first.includes('placehold.co')) {
-      return first;
-    }
-    if (typeof first === 'object' && first && typeof first.url === 'string') {
-      return first.url;
-    }
-  }
-  if (typeof image === 'object' && image && typeof image.url === 'string') {
-    return image.url;
+  if (Array.isArray(images) && images.length > 0 && typeof images[0] === 'string' && !images[0].includes('placehold.co')) {
+    return images[0];
   }
   return fallback;
 };
@@ -51,6 +42,13 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
   const safeRating = typeof property.rating === 'number' ? property.rating.toFixed(1) : '4.5';
   const safeReviews = typeof property.reviews === 'number' ? property.reviews : 0;
   const photoCount = (Array.isArray(property.images) && property.images.length > 0) ? property.images.length : 1;
+
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const priceText = formatIndianCurrency(property.price || 0);
+    const message = `Hi Hobo Livings team! 👋 I am interested in visiting *${property.title || 'Accommodation'}* in *${property.location || 'Greater Noida'}, ${property.city || ''}* (Rent: ₹${priceText}/mo).\nIs a bed available for a free physical site visit?`;
+    window.open(`https://wa.me/918920642742?text=${encodeURIComponent(message)}`, '_blank');
+  };
 
   return (
     <Card 
@@ -109,7 +107,7 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
           <span className="inline-flex items-center text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
             ✓ Zero Brokerage
           </span>
-          <span className="inline-flex items-center text-[11px] font-medium text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+          <span className="inline-flex items-center text-[11px] font-medium text-blue-700 dark:blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
             🗓️ 48h Bed Hold
           </span>
         </div>
@@ -138,17 +136,33 @@ export default function PropertyCard({ property, onCardClick }: PropertyCardProp
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 bg-secondary/50 flex justify-between items-center">
-        <div>
-            <p className="text-xl font-bold text-primary font-mono">₹{formatIndianCurrency(property.price || 0)}</p>
-            <p className="text-[11px] text-muted-foreground font-medium">/ month (₹0 Brokerage)</p>
+      <CardFooter className="p-4 bg-secondary/50 flex justify-between items-center gap-2">
+        <div className="min-w-0">
+          <p className="text-lg md:text-xl font-bold text-primary font-mono truncate">₹{formatIndianCurrency(property.price || 0)}</p>
+          <p className="text-[10px] md:text-[11px] text-muted-foreground font-medium truncate">/ mo (₹0 Brokerage)</p>
         </div>
-        <Button 
-          className="group-hover:gap-3 transition-all font-semibold"
-          aria-label={`View details and schedule visit for ${property.title || 'property'}`}
-        >
-          View & Book <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-        </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleWhatsAppClick}
+            className="h-8 md:h-9 px-2 md:px-2.5 rounded-lg border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-700 transition-colors shadow-xs flex items-center gap-1 text-xs font-semibold"
+            title="Chat on WhatsApp"
+            aria-label="Chat on WhatsApp about this property"
+          >
+            <MessageCircle className="h-4 w-4 fill-emerald-500/20 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline">WhatsApp</span>
+          </Button>
+
+          <Button 
+            size="sm"
+            className="group-hover:gap-2 transition-all font-semibold text-xs h-8 md:h-9 px-3"
+            aria-label={`View details and schedule visit for ${property.title || 'property'}`}
+          >
+            View & Book <ArrowRight className="ml-1 h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

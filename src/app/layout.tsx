@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
+import FloatingWhatsApp from '@/components/floating-whatsapp';
 import {
   buildOrganizationSchema,
   buildWebsiteSchema,
@@ -181,6 +182,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <FloatingWhatsApp />
         <Toaster />
         <Script
           src="https://upload-widget.cloudinary.com/global/all.js"
